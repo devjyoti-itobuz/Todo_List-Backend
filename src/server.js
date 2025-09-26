@@ -1,17 +1,16 @@
 import 'dotenv/config'
-import express from 'express'
-const app = express()
-const port = process.env.PORT
+import express from 'express';
+import tasksRouter from './routes/routes.js';
+import cors from 'cors';
 
-const sc = {
-  success: true,
-  message: 'Server is up and running',
-}
+const app = express();
+const PORT = process.env.PORT;
 
-app.get('/', (req, res) => {
-  res.send(sc)
-})
+app.use(cors());
+app.use(express.json())
 
-app.listen(port, () => {
-  console.log(`${sc.message} at ${port}`)
-})
+app.use('/api/tasks', tasksRouter);
+
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`)
+});
