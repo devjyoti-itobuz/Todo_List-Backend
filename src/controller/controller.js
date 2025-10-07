@@ -1,6 +1,4 @@
-// import { v4 as uuidv4 } from 'uuid'
 import { readData, writeData, getISTLocalizedTime } from '../utils/utils.js'
-
 import { taskCreateSchema, taskUpdateSchema } from '../validations/validator.js'
 
 export const createTask = async (req, res, next) => {
@@ -27,7 +25,7 @@ export const createTask = async (req, res, next) => {
 
 export const getAllTasks = async (req, res, next) => {
   try {
-    const { search } = req.query
+    const { search, status = 'all', priority } = req.query
     const data = await readData()
     let tasks = data.tasks
 
@@ -37,11 +35,27 @@ export const getAllTasks = async (req, res, next) => {
       tasks = tasks.filter((task) => {
         return (
           task.title?.toLowerCase().includes(searchText) ||
-          task.isImportant?.toLowerCase().includes(searchText) ||
+          task.priority?.toLowerCase().includes(searchText) ||
           task.tags?.some((tag) => tag.toLowerCase().includes(searchText))
         )
       })
     }
+
+    if (status === 'completed') {
+      tasks = tasks.filter((task) => task.isCompleted === true)
+    } else if (status === 'pending') {
+      tasks = tasks.filter((task) => task.isCompleted === false)
+    }
+
+    if (priority && typeof priority === 'string') {
+      tasks = tasks.filter(
+        (task) => task.isImportant?.toLowerCase() === priority.toLowerCase()
+      )
+    }
+
+    tasks.sort((a, b) => {
+      return new Date(b.updatedAt) - new Date(a.updatedAt)
+    })
 
     res.json(tasks)
   } catch (err) {
