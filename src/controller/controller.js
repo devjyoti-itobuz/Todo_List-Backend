@@ -1,26 +1,16 @@
-import { v4 as uuidv4 } from 'uuid'
+// import { v4 as uuidv4 } from 'uuid'
 import { readData, writeData, getISTLocalizedTime } from '../utils/utils.js'
+
+import { taskCreateSchema, taskUpdateSchema } from '../validations/validator.js'
 
 export const createTask = async (req, res, next) => {
   try {
-    const { title, tags = [], isImportant } = req.body
+    const validatedData = await taskCreateSchema.validate(req.body, {
+      abortEarly: false,
+      stripUnknown: true,
+    })
 
-    if (!title || typeof title !== 'string' || title.trim().length < 3) {
-      const error = new Error('Invalid title (min 3 characters)')
-      error.status = 400
-      return next(error)
-      // return res.status(400).json({ error: 'Invalid title (min 3 characters)' })
-    }
-
-    const newTask = {
-      id: uuidv4(),
-      title: title.trim(),
-      tags: Array.isArray(tags) ? tags : [],
-      isImportant: isImportant.trim(),
-      isCompleted: false,
-      createdAt: getISTLocalizedTime(),
-      updatedAt: getISTLocalizedTime(),
-    }
+    const newTask = validatedData
 
     const data = await readData()
     data.tasks.push(newTask)
@@ -28,7 +18,9 @@ export const createTask = async (req, res, next) => {
 
     res.status(201).json(newTask)
   } catch (err) {
-    // res.status(500).json({ error: `Failed to create task, ${err}` })
+    if (err.name === 'ValidationError') {
+      err.status = 400
+    }
     next(err)
   }
 }
@@ -51,8 +43,11 @@ export const deleteTask = async (req, res, next) => {
     const initialLength = data.tasks.length
     data.tasks = data.tasks.filter((t) => t.id !== id)
 
-    if (data.tasks.length === initialLength)
-      return res.status(404).json({ error: 'Task not found' })
+    if (data.tasks.length === initialLength) {
+      const error = new Error('Task not found')
+      error.status = 404
+      return next(error)
+    }
 
     await writeData(data)
     res.status(204).send()
@@ -76,27 +71,45 @@ export const clearAllTasks = async (req, res, next) => {
 export const updateTask = async (req, res, next) => {
   try {
     const { id } = req.params
-    const { title, tags, isImportant, isCompleted } = req.body
+
+    const validatedData = await taskUpdateSchema.validate(req.body, {
+      abortEarly: false,
+      stripUnknown: true,
+    })
 
     const data = await readData()
     const task = data.tasks.find((t) => t.id === id)
 
     if (!task) {
-      return res.status(404).json({ error: 'Task not found' })
+      const error = new Error('Task not found')
+      error.status = 404
+      return next(error)
     }
 
-    if (title && typeof title === 'string') task.title = title.trim()
-    if (Array.isArray(tags)) task.tags = tags
-    if (isImportant && typeof isImportant === 'string')
-      task.isImportant = isImportant
-    if (typeof isCompleted === 'boolean') task.isCompleted = isCompleted
+    if (validatedData.title && typeof validatedData.title === 'string') {
+      task.title = validatedData.title
+    }
+    if (Array.isArray(validatedData.tags)) {
+      task.tags = validatedData.tags
+    }
+    if (
+      validatedData.isImportant &&
+      typeof validatedData.isImportant === 'string'
+    ) {
+      task.isImportant = validatedData.isImportant
+    }
+    if (typeof validatedData.isCompleted === 'boolean') {
+      task.isCompleted = validatedData.isCompleted
+    }
 
     task.updatedAt = getISTLocalizedTime()
 
     await writeData(data)
     res.json(task)
   } catch (err) {
-    // res.status(500).json({ error: `Failed to update task, ${err}` })
+    if (err.name === 'ValidationError') {
+      err.status = 400
+    }
     next(err)
   }
 }
