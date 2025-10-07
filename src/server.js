@@ -2,12 +2,14 @@ import 'dotenv/config'
 import express from 'express';
 import tasksRouter from './routes/routes.js';
 import cors from 'cors';
+import { errorHandler } from './error/errorHandler.js';
 
 const app = express();
 const PORT = process.env.PORT;
 
 app.use(cors());
 app.use(express.json())
+app.use(errorHandler)
 
 app.use('/api/tasks', tasksRouter);
 

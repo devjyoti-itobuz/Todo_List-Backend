@@ -1,43 +1,15 @@
-import { readFile, writeFile } from 'fs/promises'
 import { v4 as uuidv4 } from 'uuid'
-import path from 'path'
-import { fileURLToPath } from 'url'
+import { readData, writeData, getISTLocalizedTime } from '../utils/utils.js'
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
-
-const DB_PATH = path.join(__dirname, '../../database/db.json')
-
-async function readData() {
-  const data = await readFile(DB_PATH, 'utf-8')
-  return JSON.parse(data)
-}
-
-async function writeData(data) {
-  await writeFile(DB_PATH, JSON.stringify(data, null, 2))
-}
-
-function getISTLocalizedTime() {
-  const now = new Date()
-  const options = {
-    timeZone: 'Asia/Kolkata',
-    hour: 'numeric',
-    minute: 'numeric',
-    second: 'numeric',
-    year: 'numeric',
-    month: 'numeric',
-    day: 'numeric',
-    hour12: true, // Use 12-hour clock with AM/PM
-  }
-  return now.toLocaleString('en-IN', options)
-}
-
-export const createTask = async (req, res) => {
+export const createTask = async (req, res, next) => {
   try {
     const { title, tags = [], isImportant } = req.body
 
     if (!title || typeof title !== 'string' || title.trim().length < 3) {
-      return res.status(400).json({ error: 'Invalid title (min 3 characters)' })
+      const error = new Error('Invalid title (min 3 characters)')
+      error.status = 400
+      return next(error)
+      // return res.status(400).json({ error: 'Invalid title (min 3 characters)' })
     }
 
     const newTask = {
@@ -56,20 +28,22 @@ export const createTask = async (req, res) => {
 
     res.status(201).json(newTask)
   } catch (err) {
-    res.status(500).json({ error: `Failed to create task, ${err}` })
+    // res.status(500).json({ error: `Failed to create task, ${err}` })
+    next(err)
   }
 }
 
-export const getAllTasks = async (req, res) => {
+export const getAllTasks = async (req, res, next) => {
   try {
     const data = await readData()
     res.json(data.tasks)
   } catch (err) {
-    res.status(500).json({ error: `Failed to load tasks, ${err}` })
+    // res.status(500).json({ error: `Failed to load tasks, ${err}` })
+    next(err)
   }
 }
 
-export const deleteTask = async (req, res) => {
+export const deleteTask = async (req, res, next) => {
   try {
     const { id } = req.params
 
@@ -83,21 +57,23 @@ export const deleteTask = async (req, res) => {
     await writeData(data)
     res.status(204).send()
   } catch (err) {
-    res.status(500).json({ error: `Failed to delete task,  ${err}` })
+    // res.status(500).json({ error: `Failed to delete task,  ${err}` })
+    next(err)
   }
 }
 
-export const clearAllTasks = async (req, res) => {
+export const clearAllTasks = async (req, res, next) => {
   try {
     const data = { tasks: [] }
     await writeData(data)
     res.json({ message: 'All tasks cleared' })
   } catch (err) {
-    res.status(500).json({ error: `Failed to clear tasks, ${err}` })
+    // res.status(500).json({ error: `Failed to clear tasks, ${err}` })
+    next(err)
   }
 }
 
-export const updateTask = async (req, res) => {
+export const updateTask = async (req, res, next) => {
   try {
     const { id } = req.params
     const { title, tags, isImportant, isCompleted } = req.body
@@ -105,11 +81,14 @@ export const updateTask = async (req, res) => {
     const data = await readData()
     const task = data.tasks.find((t) => t.id === id)
 
-    if (!task) return res.status(404).json({ error: 'Task not found' })
+    if (!task) {
+      return res.status(404).json({ error: 'Task not found' })
+    }
 
     if (title && typeof title === 'string') task.title = title.trim()
     if (Array.isArray(tags)) task.tags = tags
-    if (isImportant && typeof isImportant === 'string') task.isImportant = isImportant
+    if (isImportant && typeof isImportant === 'string')
+      task.isImportant = isImportant
     if (typeof isCompleted === 'boolean') task.isCompleted = isCompleted
 
     task.updatedAt = getISTLocalizedTime()
@@ -117,6 +96,7 @@ export const updateTask = async (req, res) => {
     await writeData(data)
     res.json(task)
   } catch (err) {
-    res.status(500).json({ error: `Failed to update task, ${err}` })
+    // res.status(500).json({ error: `Failed to update task, ${err}` })
+    next(err)
   }
 }
