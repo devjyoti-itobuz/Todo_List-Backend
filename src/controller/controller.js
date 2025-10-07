@@ -1,13 +1,12 @@
 import { readData, writeData, getISTLocalizedTime } from '../utils/utils.js'
-import { taskCreateSchema, taskUpdateSchema } from '../validations/validator.js'
+import { taskCreateSchema, taskUpdateSchema } from '../schema/schema.js'
+import { validateRequest } from '../validations/validator.js'
 
 export const createTask = async (req, res, next) => {
-  try {
-    const validatedData = await taskCreateSchema.validate(req.body, {
-      abortEarly: false,
-      stripUnknown: true,
-    })
+  const validatedData = await validateRequest(taskCreateSchema, req.body, next)
+  if (!validatedData) return
 
+  try {
     const newTask = validatedData
 
     const data = await readData()
@@ -16,9 +15,6 @@ export const createTask = async (req, res, next) => {
 
     res.status(201).json(newTask)
   } catch (err) {
-    if (err.name === 'ValidationError') {
-      err.status = 400
-    }
     next(err)
   }
 }
@@ -105,14 +101,11 @@ export const clearAllTasks = async (req, res, next) => {
 }
 
 export const updateTask = async (req, res, next) => {
+  const { id } = req.params
+  const validatedData = await validateRequest(taskUpdateSchema, req.body, next)
+  if (!validatedData) return 
+
   try {
-    const { id } = req.params
-
-    const validatedData = await taskUpdateSchema.validate(req.body, {
-      abortEarly: false,
-      stripUnknown: true,
-    })
-
     const data = await readData()
     const task = data.tasks.find((t) => t.id === id)
 
