@@ -27,10 +27,24 @@ export const createTask = async (req, res, next) => {
 
 export const getAllTasks = async (req, res, next) => {
   try {
+    const { search } = req.query
     const data = await readData()
-    res.json(data.tasks)
+    let tasks = data.tasks
+
+    if (search && typeof search === 'string') {
+      const searchText = search.toLowerCase()
+
+      tasks = tasks.filter((task) => {
+        return (
+          task.title?.toLowerCase().includes(searchText) ||
+          task.isImportant?.toLowerCase().includes(searchText) ||
+          task.tags?.some((tag) => tag.toLowerCase().includes(searchText))
+        )
+      })
+    }
+
+    res.json(tasks)
   } catch (err) {
-    // res.status(500).json({ error: `Failed to load tasks, ${err}` })
     next(err)
   }
 }
@@ -41,7 +55,15 @@ export const deleteTask = async (req, res, next) => {
 
     const data = await readData()
     const initialLength = data.tasks.length
-    data.tasks = data.tasks.filter((t) => t.id !== id)
+    const index = data.tasks.findIndex((t) => t.id === id)
+
+    if (index === -1) {
+      const error = new Error('Task not found')
+      error.status = 404
+      return next(error)
+    }
+
+    data.tasks.splice(index, 1)
 
     if (data.tasks.length === initialLength) {
       const error = new Error('Task not found')

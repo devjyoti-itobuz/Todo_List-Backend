@@ -16,7 +16,6 @@ export const taskCreateSchema = yup.object({
   updatedAt: yup.string().default(() => getISTLocalizedTime()),
 })
 
-
 export const taskUpdateSchema = yup.object({
   title: yup.string().trim().min(3),
   tags: yup.array().of(yup.string()),
