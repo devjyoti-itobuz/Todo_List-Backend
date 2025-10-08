@@ -9,6 +9,6 @@ export const validateRequest = async (schema, data, next) => {
     if (err.name === 'ValidationError') {
       err.status = 400
     }
-    next(err) // pass to express error handler
+    next(err)
   }
 }

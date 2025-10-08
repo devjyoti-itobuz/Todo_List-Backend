@@ -103,7 +103,7 @@ export const clearAllTasks = async (req, res, next) => {
 export const updateTask = async (req, res, next) => {
   const { id } = req.params
   const validatedData = await validateRequest(taskUpdateSchema, req.body, next)
-  if (!validatedData) return 
+  if (!validatedData) return
 
   try {
     const data = await readData()
@@ -115,16 +115,13 @@ export const updateTask = async (req, res, next) => {
       return next(error)
     }
 
-    if (validatedData.title && typeof validatedData.title === 'string') {
+    if (validatedData.title) {
       task.title = validatedData.title
     }
-    if (Array.isArray(validatedData.tags)) {
+    if (validatedData.tags) {
       task.tags = validatedData.tags
     }
-    if (
-      validatedData.isImportant &&
-      typeof validatedData.isImportant === 'string'
-    ) {
+    if (validatedData.isImportant) {
       task.isImportant = validatedData.isImportant
     }
     if (typeof validatedData.isCompleted === 'boolean') {
