@@ -1,17 +1,18 @@
-import { readData, writeData, getISTLocalizedTime } from '../utils/utils.js'
+// import { readData, writeData, getISTLocalizedTime } from '../utils/utils.js'
+import { getISTLocalizedTime } from '../utils/utils.js'
 import { taskCreateSchema, taskUpdateSchema } from '../schema/schema.js'
 import { validateRequest } from '../validations/validator.js'
+import { Task } from '../model/taskModel.js'
+import mongoose from 'mongoose'
 
 export const createTask = async (req, res, next) => {
   const validatedData = await validateRequest(taskCreateSchema, req.body, next)
   if (!validatedData) return
 
   try {
-    const newTask = validatedData
+    const newTask = new Task(validatedData)
 
-    const data = await readData()
-    data.tasks.push(newTask)
-    await writeData(data)
+    await newTask.save()
 
     res.status(201).json(newTask)
   } catch (err) {
@@ -22,36 +23,33 @@ export const createTask = async (req, res, next) => {
 export const getAllTasks = async (req, res, next) => {
   try {
     const { search, status = 'all', priority } = req.query
-    const data = await readData()
-    let tasks = data.tasks
 
-    if (search && typeof search === 'string') {
-      const searchText = search.toLowerCase()
-
-      tasks = tasks.filter((task) => {
-        return (
-          task.title?.toLowerCase().includes(searchText) ||
-          task.priority?.toLowerCase().includes(searchText) ||
-          task.tags?.some((tag) => tag.toLowerCase().includes(searchText))
-        )
-      })
-    }
+    // Build MongoDB query object
+    const query = {}
 
     if (status === 'completed') {
-      tasks = tasks.filter((task) => task.isCompleted === true)
+      query.isCompleted = true
     } else if (status === 'pending') {
-      tasks = tasks.filter((task) => task.isCompleted === false)
+      query.isCompleted = false
     }
 
     if (priority && typeof priority === 'string') {
-      tasks = tasks.filter(
-        (task) => task.isImportant?.toLowerCase() === priority.toLowerCase()
-      )
+      query.isImportant = { $regex: new RegExp(`^${priority}$`, 'i') } // case-insensitive exact match
     }
 
-    tasks.sort((a, b) => {
-      return new Date(b.updatedAt) - new Date(a.updatedAt)
-    })
+    // Search filter on title, priority, tags
+    if (search && typeof search === 'string') {
+      const searchRegex = new RegExp(search, 'i') // case-insensitive partial match
+
+      query.$or = [
+        { title: searchRegex },
+        // { isImportant: searchRegex },
+        { tags: { $elemMatch: { $regex: searchRegex } } },
+      ]
+    }
+
+    // Execute the query with sorting by updatedAt desc
+    const tasks = await Task.find(query).sort({ updatedAt: -1 })
 
     res.json(tasks)
   } catch (err) {
@@ -62,80 +60,69 @@ export const getAllTasks = async (req, res, next) => {
 export const deleteTask = async (req, res, next) => {
   try {
     const { id } = req.params
+    // console.log('Deleting task with id:', id)
 
-    const data = await readData()
-    const initialLength = data.tasks.length
-    const index = data.tasks.findIndex((t) => t.id === id)
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      const error = new Error('Invalid task ID')
+      error.status = 400
+      return next(error)
+    }
 
-    if (index === -1) {
+    const deletedTask = await Task.findByIdAndDelete(id)
+    // console.log('Deleted task:', deletedTask)
+
+    if (!deletedTask) {
       const error = new Error('Task not found')
       error.status = 404
       return next(error)
     }
 
-    data.tasks.splice(index, 1)
-
-    if (data.tasks.length === initialLength) {
-      const error = new Error('Task not found')
-      error.status = 404
-      return next(error)
-    }
-
-    await writeData(data)
     res.status(204).send()
   } catch (err) {
-    // res.status(500).json({ error: `Failed to delete task,  ${err}` })
     next(err)
   }
 }
 
 export const clearAllTasks = async (req, res, next) => {
   try {
-    const data = { tasks: [] }
-    await writeData(data)
+    // Delete all documents in the Task collection
+    await Task.deleteMany({})
+
     res.json({ message: 'All tasks cleared' })
   } catch (err) {
-    // res.status(500).json({ error: `Failed to clear tasks, ${err}` })
     next(err)
   }
 }
 
 export const updateTask = async (req, res, next) => {
   const { id } = req.params
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    const error = new Error('Invalid task ID')
+    error.status = 400
+    return next(error)
+  }
+
   const validatedData = await validateRequest(taskUpdateSchema, req.body, next)
   if (!validatedData) return
 
   try {
-    const data = await readData()
-    const task = data.tasks.find((t) => t.id === id)
+    validatedData.updatedAt = getISTLocalizedTime()
 
-    if (!task) {
+    const updatedTask = await Task.findByIdAndUpdate(
+      id,
+      { $set: validatedData },
+      { new: true } // return the updated document
+    )
+
+    if (!updatedTask) {
       const error = new Error('Task not found')
       error.status = 404
       return next(error)
     }
 
-    if (validatedData.title) {
-      task.title = validatedData.title
-    }
-    if (validatedData.tags) {
-      task.tags = validatedData.tags
-    }
-    if (validatedData.isImportant) {
-      task.isImportant = validatedData.isImportant
-    }
-    if (typeof validatedData.isCompleted === 'boolean') {
-      task.isCompleted = validatedData.isCompleted
-    }
-
-    task.updatedAt = getISTLocalizedTime()
-
-    await writeData(data)
-    res.json(task)
+    res.json(updatedTask)
   } catch (err) {
-    if (err.name === 'ValidationError') {
-      err.status = 400
-    }
     next(err)
   }
 }

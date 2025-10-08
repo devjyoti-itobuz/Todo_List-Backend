@@ -1,9 +1,9 @@
 import * as yup from 'yup'
-import { v4 as uuidv4 } from 'uuid'
+// import { v4 as uuidv4 } from 'uuid'
 import { getISTLocalizedTime } from '../utils/utils.js'
 
 export const taskCreateSchema = yup.object({
-  id: yup.string().default(() => uuidv4()),
+  // id: yup.string().default(() => uuidv4()),
   title: yup
     .string()
     .trim()
