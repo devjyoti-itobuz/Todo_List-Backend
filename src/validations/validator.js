@@ -1,10 +1,12 @@
-export const validateRequest = async (schema, data, next) => {
+import { taskCreateSchema, taskUpdateSchema } from '../schema/schema.js'
+
+const validateRequest = (schema) => async (req, res, next) => {
   try {
-    const validatedData = await schema.validate(data, {
+    req.body = await schema.validate(req.body, {
       abortEarly: false, // return all validation errors
       stripUnknown: true, // remove unexpected fields
     })
-    return validatedData
+    next()
   } catch (err) {
     if (err.name === 'ValidationError') {
       err.status = 400
@@ -12,3 +14,6 @@ export const validateRequest = async (schema, data, next) => {
     next(err)
   }
 }
+
+export const validateCreateTodo = validateRequest(taskCreateSchema)
+export const validateUpdateTodo = validateRequest(taskUpdateSchema)
