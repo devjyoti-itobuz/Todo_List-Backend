@@ -1,18 +1,22 @@
-import express from 'express';
+import express from 'express'
 import {
   getAllTasks,
   createTask,
   updateTask,
   deleteTask,
   clearAllTasks,
-} from '../controller/controller.js';
+} from '../controller/controller.js'
+import {
+  validateCreateTodo,
+  validateUpdateTodo,
+} from '../validations/validator.js'
 
-const router = express.Router();
+const router = express.Router()
 
-router.get('/', getAllTasks);
-router.post('/', createTask);
-router.put('/:id', updateTask);
-router.delete('/:id', deleteTask);
-router.delete('/', clearAllTasks);
+router.get('/', getAllTasks)
+router.post('/', validateCreateTodo, createTask)
+router.put('/:id', validateUpdateTodo, updateTask)
+router.delete('/:id', deleteTask)
+router.delete('/', clearAllTasks)
 
-export default router;
+export default router
