@@ -4,9 +4,10 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 export default function verifyToken(req, res, next) {
-    
+
   const secretKey = process.env.JWT_SECRET_KEY
-  const token = req.header('Authorization')
+  const authHeader = req.header('Authorization')
+    const token = authHeader.split(' ')[1]
 
   if (!token) {
     res.status(401)
@@ -16,6 +17,7 @@ export default function verifyToken(req, res, next) {
   try {
     const decoded = jwt.verify(token, secretKey)
     req.userId = decoded.userId
+    next()
   } catch (error) {
     next(error)
   }

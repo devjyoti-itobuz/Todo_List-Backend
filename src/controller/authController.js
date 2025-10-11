@@ -8,10 +8,10 @@ dotenv.config()
 export default class AuthenticationController {
   registerUser = async (req, res, next) => {
     try {
-      const { username, password } = req.body
+      const { email, password } = req.body
       const hashedPass = await bcrypt.hash(password, 10)
       //   console.log(username, password, hashedPass)
-      const user = new User({ username, password: hashedPass })
+      const user = new User({ email, password: hashedPass })
       await user.save()
       res.status(201).json({ success: true, user })
     } catch (error) {
@@ -22,9 +22,9 @@ export default class AuthenticationController {
   loginUser = async (req, res, next) => {
     try {
       const secretKey = process.env.JWT_SECRET_KEY
-      const { username, password } = req.body
+      const { email, password } = req.body
       //console.log(req.body);
-      const user = await User.findOne({ username })
+      const user = await User.findOne({ email })
 
       if (!user) {
         res.status(404)
