@@ -5,11 +5,11 @@ import {
   updateTask,
   deleteTask,
   clearAllTasks,
-} from '../controller/controller.js'
+} from '../controller/taskController.js'
 import {
   validateCreateTodo,
   validateUpdateTodo,
-} from '../validations/validator.js'
+} from '../middleware/taskValidator.js'
 
 const router = express.Router()
 

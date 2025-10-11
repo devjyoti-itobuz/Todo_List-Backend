@@ -1,4 +1,4 @@
-import { taskCreateSchema, taskUpdateSchema } from '../schema/schema.js'
+import { taskCreateSchema, taskUpdateSchema } from '../schema/schemaValidation.js'
 
 const validateRequest = (schema) => async (req, res, next) => {
   try {
