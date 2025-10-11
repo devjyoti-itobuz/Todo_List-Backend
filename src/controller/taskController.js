@@ -8,6 +8,7 @@ export default class ApiControllerFunctions {
       const newTask = new Task(req.body)
       await newTask.save()
       res.status(201).json(newTask)
+      
     } catch (err) {
       next(err)
     }
@@ -61,6 +62,7 @@ export default class ApiControllerFunctions {
         error.status = 404
         return next(error)
       }
+
       res.status(204).send()
     } catch (err) {
       next(err)
@@ -71,6 +73,7 @@ export default class ApiControllerFunctions {
     try {
       await Task.deleteMany({})
       res.json({ message: 'All tasks cleared' })
+
     } catch (err) {
       next(err)
     }
@@ -98,6 +101,7 @@ export default class ApiControllerFunctions {
         error.status = 404
         return next(error)
       }
+
       res.json(updatedTask)
     } catch (err) {
       next(err)

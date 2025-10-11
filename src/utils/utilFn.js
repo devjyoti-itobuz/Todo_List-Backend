@@ -18,6 +18,7 @@ export async function writeData(data) {
 
 export function getISTLocalizedTime() {
   const now = new Date()
+
   const options = {
     timeZone: 'Asia/Kolkata',
     hour: 'numeric',
@@ -28,5 +29,6 @@ export function getISTLocalizedTime() {
     day: 'numeric',
     hour12: true, // Use 12-hour clock with AM/PM
   }
+  
   return now.toLocaleString('en-IN', options)
 }

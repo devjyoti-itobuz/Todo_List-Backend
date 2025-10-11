@@ -22,13 +22,13 @@ export default class AuthenticationController {
   loginUser = async (req, res, next) => {
     try {
       const secretKey = process.env.JWT_SECRET_KEY
+      const refreshSecretKey = process.env.JWT_REFRESH_SECRET_KEY
       const { email, password } = req.body
-      //console.log(req.body);
       const user = await User.findOne({ email })
 
       if (!user) {
         res.status(404)
-        throw new Error('User not found! ❌')
+        throw new Error('User not found!')
       }
 
       const passwordMatched = await bcrypt.compare(password, user.password)
@@ -38,12 +38,71 @@ export default class AuthenticationController {
         throw new Error('Authentication failed, password not matched')
       }
 
-      const token = jwt.sign({ userId: user._id }, secretKey, {
+      const accessToken = jwt.sign({ userId: user._id }, secretKey, {
         expiresIn: '1h',
       })
-    //   delete user._doc.password
 
-      res.status(200).json({ token, user })
+      const refreshToken = jwt.sign({ userId: user._id }, refreshSecretKey, {
+        expiresIn: '69d',
+      })
+
+    //   user.refreshToken = refreshToken use lclstrge
+      await user.save()
+
+      res.status(200).json({ accessToken, refreshToken, user })
+    } catch (error) {
+      next(error)
+    }
+  }
+
+//   refreshToken = async (req, res, next) => {
+//     try {
+//       const { refreshToken } = req.body
+//       const refreshSecretKey = process.env.JWT_REFRESH_SECRET_KEY
+
+//       if (!refreshToken) {
+//         res.status(401)
+//         throw new Error('Refresh token is required')
+//       }
+
+//       const payload = jwt.verify(refreshToken, refreshSecretKey)
+
+//       const user = await User.findById(payload.userId)
+
+//       if (!user || user.refreshToken !== refreshToken) {
+//         res.status(403)
+//         throw new Error('Invalid refresh token')
+//       }
+
+//       const accessToken = jwt.sign(
+//         { userId: user._id },
+//         process.env.JWT_SECRET_KEY,
+//         {
+//           expiresIn: '1h',
+//         }
+//       )
+
+//       res.status(200).json({ accessToken })
+//     } catch (error) {
+//       next(error)
+//     }
+//   }
+
+  logoutUser = async (req, res, next) => {
+    try {
+      const { userId } = req.body
+
+      const user = await User.findById(userId)
+
+      if (!user) {
+        res.status(404)
+        throw new Error('User not found')
+      }
+
+    //   user.refreshToken = null
+      await user.save()
+
+      res.status(200).json({ message: 'Logged out successfully' })
     } catch (error) {
       next(error)
     }

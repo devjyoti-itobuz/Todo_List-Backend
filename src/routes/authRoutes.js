@@ -12,5 +12,7 @@ authRouter.use((req, res, next) => {
 
 authRouter.post('/register', authentication.registerUser)
 authRouter.post('/login', authentication.loginUser)
+// authRouter.post('/refresh-token', authentication.refreshToken)
+authRouter.post('/logout', authentication.logoutUser)
 
 export default authRouter
