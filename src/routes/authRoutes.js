@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import AuthenticationController from '../controller/authController.js'
 import { validateUserSchema } from '../middleware/userValidation.js'
-// import { sendOTP } from '../controller/otpController.js'
+import { sendOTP, verifyOTP } from '../controller/otpController.js'
 
 const authRouter = Router()
 
@@ -12,10 +12,11 @@ authRouter.use((req, res, next) => {
   next()
 })
 
-authRouter.post('/register', validateUserSchema,authentication.registerUser)
+authRouter.post('/register', validateUserSchema, authentication.registerUser)
 authRouter.post('/login', authentication.loginUser)
 // authRouter.post('/refresh-token', authentication.refreshToken)
 authRouter.post('/logout', authentication.logoutUser)
-// authRouter.post('/sendOTP', sendOTP)
+authRouter.post('/sendOTP', sendOTP)
+authRouter.post('/verifyOTP', verifyOTP)
 
 export default authRouter

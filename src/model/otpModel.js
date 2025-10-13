@@ -9,7 +9,10 @@ const otpSubSchema = new mongoose.Schema(
     createdAt: {
       type: Date,
       default: Date.now,
-    //   expires: 60 * 5,
+    },
+    expiryOTP: {
+      type: Date,
+      default: () => new Date(Date.now() + 5 * 60 * 1000), // 5 minutes from now
     },
   },
   { _id: false }
