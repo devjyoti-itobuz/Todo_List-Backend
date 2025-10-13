@@ -1,9 +1,14 @@
-import jwt from 'jsonwebtoken'
+// import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
 import dotenv from 'dotenv'
 import User from '../model/userModel.js'
+import TokenGenerator from '../services/tokenGenerator.js'
+
+const tokenGenerator = new TokenGenerator()
 
 dotenv.config()
+
+const refreshTokens = []
 
 export default class AuthenticationController {
   registerUser = async (req, res, next) => {
@@ -38,15 +43,14 @@ export default class AuthenticationController {
         throw new Error('Authentication failed, password not matched')
       }
 
-      const accessToken = jwt.sign({ userId: user._id }, secretKey, {
-        expiresIn: '1h',
-      })
+      const accessToken=tokenGenerator.generateAccessToken({ userId: user._id }, secretKey)
 
-      const refreshToken = jwt.sign({ userId: user._id }, refreshSecretKey, {
-        expiresIn: '69d',
-      })
+      const refreshToken=tokenGenerator.generateRefreshToken(
+        { userId: user._id },
+        refreshSecretKey
+      )
 
-    //   user.refreshToken = refreshToken use lclstrge
+      refreshTokens.push(refreshToken)
       await user.save()
 
       res.status(200).json({ accessToken, refreshToken, user })

@@ -18,7 +18,8 @@ app.use(errorHandler)
 
 app.use(loggerMiddleware)
 app.use('/auth', authRouter)
-app.use('/protected', protectedRoute)
+app.use('/auth/protected', protectedRoute)
+
 
 app.use('/api/tasks', tasksRouter)
 

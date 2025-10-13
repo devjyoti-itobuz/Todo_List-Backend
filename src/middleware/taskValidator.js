@@ -1,7 +1,7 @@
 import {
   taskCreateSchema,
   taskUpdateSchema,
-} from '../schema/schemaValidation.js'
+} from './schema/schemaValidation.js'
 
 const validateRequest = (schema) => async (req, res, next) => {
 
