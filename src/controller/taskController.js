@@ -8,8 +8,8 @@ export default class ApiControllerFunctions {
       const newTask = new Task(req.body)
       await newTask.save()
       res.status(201).json(newTask)
-      
     } catch (err) {
+      err.status = 500
       next(err)
     }
   }
@@ -33,7 +33,6 @@ export default class ApiControllerFunctions {
         const searchRegex = new RegExp(search, 'i')
         query.$or = [
           { title: searchRegex },
-          // { isImportant: searchRegex },
           { tags: { $elemMatch: { $regex: searchRegex } } },
         ]
       }
@@ -41,6 +40,7 @@ export default class ApiControllerFunctions {
       const tasks = await Task.find(query).sort({ updatedAt: -1 })
       res.json(tasks)
     } catch (err) {
+      err.status = 500
       next(err)
     }
   }
@@ -65,6 +65,7 @@ export default class ApiControllerFunctions {
 
       res.status(204).send()
     } catch (err) {
+      err.status = 500
       next(err)
     }
   }
@@ -73,8 +74,8 @@ export default class ApiControllerFunctions {
     try {
       await Task.deleteMany({})
       res.json({ message: 'All tasks cleared' })
-
     } catch (err) {
+      err.status = 500
       next(err)
     }
   }
@@ -104,6 +105,7 @@ export default class ApiControllerFunctions {
 
       res.json(updatedTask)
     } catch (err) {
+      err.status = 500
       next(err)
     }
   }

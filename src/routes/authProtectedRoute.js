@@ -1,5 +1,5 @@
 import Router from 'express'
-import {verifyToken} from '../middleware/authValidator.js'
+import {verifyToken} from '../middleware/verifyToken.js'
 // import loggerMiddleware from '../middleware/loggerMiddleware.js'
 
 const protectedRoute = new Router()
