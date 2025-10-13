@@ -19,4 +19,11 @@ authRouter.post('/logout', authentication.logoutUser)
 authRouter.post('/sendOTP', sendOTP)
 authRouter.post('/verifyOTP', verifyOTP)
 
+authRouter.post('/forgot-password/sendOTP', sendOTP)
+authRouter.post('/forgot-password/verifyOTP', verifyOTP)
+authRouter.post('/forgot-password/reset', authentication.setNewPasswordAfterOTP)
+
+// router.post('/reset-password', authenticateUser, resetPassword)
+authRouter.post('/reset-password', authentication.resetPassword)
+
 export default authRouter
