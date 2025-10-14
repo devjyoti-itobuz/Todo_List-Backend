@@ -3,7 +3,6 @@ import bcrypt from 'bcrypt'
 import dotenv from 'dotenv'
 import User from '../model/userModel.js'
 import TokenGenerator from '../services/tokenGenerator.js'
-import OTP from '../model/otpModel.js'
 
 const tokenGenerator = new TokenGenerator()
 
@@ -57,11 +56,109 @@ export default class AuthenticationController {
       )
 
       refreshTokens.push(refreshToken)
-      await user.save()
+      // await user.save()
 
       res.status(200).json({ accessToken, refreshToken, user })
     } catch (error) {
       next(error)
+    }
+  }
+
+  logoutUser = async (req, res, next) => {
+    try {
+      const { userId } = req.body
+
+      const user = await User.findById(userId)
+
+      if (!user) {
+        res.status(404)
+        throw new Error('User not found')
+      }
+
+      //   user.refreshToken = null
+      await user.save()
+
+      res.status(200).json({ message: 'Logged out successfully' })
+    } catch (error) {
+      next(error)
+    }
+  }
+
+  setNewPasswordAfterOTP = async (req, res) => {
+    const { email, otp, newPassword } = req.body
+
+    if (!email || !otp || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email, OTP and new password are required.',
+      })
+    }
+
+    try {
+      const user = await User.findOne({ email })
+      if (!user) {
+        return res
+          .status(404)
+          .json({ success: false, message: 'User not found.' })
+      }
+
+      const hashedPassword = await bcrypt.hash(newPassword, 10)
+      user.password = hashedPassword
+      await user.save()
+
+      return res.status(200).json({
+        success: true,
+        message: 'Password updated successfully.',
+      })
+    } catch (error) {
+      console.error(error)
+      return res.status(500).json({
+        success: false,
+        message: 'An error occurred while updating the password.',
+      })
+    }
+  }
+
+  resetPassword = async (req, res) => {
+    // const { email } = req.user
+    const { email, currentPassword, newPassword } = req.body
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'Current password and new password are required.',
+      })
+    }
+
+    try {
+      const user = await User.findOne({ email })
+      if (!user) {
+        return res
+          .status(404)
+          .json({ success: false, message: 'User not found.' })
+      }
+
+      const isMatch = await bcrypt.compare(currentPassword, user.password)
+      if (!isMatch) {
+        return res
+          .status(401)
+          .json({ success: false, message: 'Current password is incorrect.' })
+      }
+
+      const hashedPassword = await bcrypt.hash(newPassword, 10)
+      user.password = hashedPassword
+      await user.save()
+
+      return res.status(200).json({
+        success: true,
+        message: 'Password reset successfully.',
+      })
+    } catch (error) {
+      console.error(error)
+      return res.status(500).json({
+        success: false,
+        message: 'An error occurred while resetting the password.',
+      })
     }
   }
 
@@ -97,119 +194,4 @@ export default class AuthenticationController {
   //       next(error)
   //     }
   //   }
-
-  logoutUser = async (req, res, next) => {
-    try {
-      const { userId } = req.body
-
-      const user = await User.findById(userId)
-
-      if (!user) {
-        res.status(404)
-        throw new Error('User not found')
-      }
-
-      //   user.refreshToken = null
-      await user.save()
-
-      res.status(200).json({ message: 'Logged out successfully' })
-    } catch (error) {
-      next(error)
-    }
-  }
-
-  setNewPasswordAfterOTP = async (req, res) => {
-    const { email, otp, newPassword } = req.body
-
-    if (!email || !otp || !newPassword) {
-      return res.status(400).json({
-        success: false,
-        message: 'Email, OTP and new password are required.',
-      })
-    }
-
-    try {
-      // Verify OTP first (reuse your verifyOTP logic here or call the function)
-      const userOTPEntry = await OTP.findOne({ email })
-      if (!userOTPEntry || userOTPEntry.otps.length === 0) {
-        return res
-          .status(404)
-          .json({ success: false, message: 'No OTP found for this email.' })
-      }
-      const latestOTP = userOTPEntry.otps[userOTPEntry.otps.length - 1]
-
-      if (latestOTP.otp !== otp) {
-        return res.status(401).json({ success: false, message: 'Invalid OTP.' })
-      }
-
-      if (new Date() > new Date(latestOTP.expiryOTP)) {
-        return res
-          .status(410)
-          .json({ success: false, message: 'OTP has expired.' })
-      }
-
-      // OTP valid, now update password
-      const user = await User.findOne({ email })
-      if (!user) {
-        return res
-          .status(404)
-          .json({ success: false, message: 'User not found.' })
-      }
-
-      const hashedPassword = await bcrypt.hash(newPassword, 10)
-      user.password = hashedPassword
-      await user.save()
-
-      return res.status(200).json({
-        success: true,
-        message: 'Password updated successfully.',
-      })
-    } catch (error) {
-      console.error(error)
-      return res.status(500).json({
-        success: false,
-        message: 'An error occurred while updating the password.',
-      })
-    }
-  }
-
-  resetPassword = async (req, res) => {
-  const { userId } = req.user // Assuming user is authenticated and userId is in req.user
-  const { currentPassword, newPassword } = req.body
-
-  if (!currentPassword || !newPassword) {
-    return res.status(400).json({
-      success: false,
-      message: 'Current password and new password are required.',
-    })
-  }
-
-  try {
-    const user = await User.findById(userId)
-    if (!user) {
-      return res.status(404).json({ success: false, message: 'User not found.' })
-    }
-
-    const isMatch = await bcrypt.compare(currentPassword, user.password)
-    if (!isMatch) {
-      return res.status(401).json({ success: false, message: 'Current password is incorrect.' })
-    }
-
-    const hashedPassword = await bcrypt.hash(newPassword, 10)
-    user.password = hashedPassword
-    await user.save()
-
-    return res.status(200).json({
-      success: true,
-      message: 'Password reset successfully.',
-    })
-  } catch (error) {
-    console.error(error)
-    return res.status(500).json({
-      success: false,
-      message: 'An error occurred while resetting the password.',
-    })
-  }
-}
-
 }

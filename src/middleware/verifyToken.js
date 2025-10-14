@@ -6,6 +6,24 @@ const tokenGenerator = new TokenGenerator()
 
 dotenv.config()
 
+export const authenticateToken = (req, res, next) => {
+  const secretKey = process.env.JWT_SECRET_KEY
+  const authHeader = req.headers['authorization']
+  const accessToken = authHeader && authHeader.split(' ')[1]
+
+  if (!accessToken) {
+    return res.status(401).json({ message: 'Access token required' })
+  }
+
+  jwt.verify(accessToken, secretKey, (err, user) => {
+    if (err) {
+      return res.status(403).json({ message: 'Invalid or expired token' })
+    }
+    req.user = user
+    next()
+  })
+}
+
 export const verifyToken = async (req, res, next) => {
   try {
     const secretKey = process.env.JWT_SECRET_KEY
@@ -24,7 +42,6 @@ export const verifyToken = async (req, res, next) => {
       const decoded = jwt.verify(accessToken, secretKey)
       req.user = decoded
       return next()
-
     } catch (error) {
       if (error.name === 'TokenExpiredError' && refreshToken) {
         try {
@@ -41,7 +58,6 @@ export const verifyToken = async (req, res, next) => {
           // req.newAccessToken = newAccessToken
           // res.status(200).json({ accessToken: newAccessToken })
           return next()
-
         } catch (error) {
           return res.status(401).json({
             message: `Session expired. Please login again, ${error}`,

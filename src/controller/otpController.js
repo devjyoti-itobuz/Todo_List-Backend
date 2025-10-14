@@ -1,5 +1,5 @@
 import otpGenerator from 'otp-generator'
-import OTP from '../model/otpModel.js'
+import otpSchema from '../model/otpModel.js'
 import User from '../model/userModel.js'
 import { createAndSendOTP } from '../services/otpService.js'
 
@@ -44,7 +44,7 @@ export const verifyOTP = async (req, res) => {
   }
 
   try {
-    const userOTPEntry = await OTP.findOne({ email })
+    const userOTPEntry = await otpSchema.findOne({ email })
 
     if (!userOTPEntry || userOTPEntry.otps.length === 0) {
       return res
@@ -62,6 +62,13 @@ export const verifyOTP = async (req, res) => {
       return res
         .status(410)
         .json({ success: false, message: 'OTP has expired.' })
+    }
+
+    const userExists = await User.findOne({ email })
+
+    if (userExists) {
+      userExists.verified = true
+      await userExists.save() 
     }
 
     return res.status(200).json({ success: true, message: 'OTP is valid.' })
