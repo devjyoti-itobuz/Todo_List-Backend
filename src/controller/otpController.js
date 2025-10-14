@@ -8,11 +8,13 @@ export const sendOTP = async (req, res) => {
     const { email } = req.body
 
     const userExists = await User.findOne({ email })
-    if (userExists.verified) {
-      return res.status(401).json({
+    
+    if (!userExists) {
+      return res.status(404).json({
         success: false,
-        message: 'User is already registered and verified',
+        message: 'User not found',
       })
+
     } else {
       const otp = otpGenerator.generate(6, {
         upperCaseAlphabets: false,

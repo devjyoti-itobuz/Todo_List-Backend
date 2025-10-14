@@ -1,4 +1,4 @@
-// import jwt from 'jsonwebtoken'
+import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
 import dotenv from 'dotenv'
 import User from '../model/userModel.js'
@@ -7,8 +7,6 @@ import TokenGenerator from '../services/tokenGenerator.js'
 const tokenGenerator = new TokenGenerator()
 
 dotenv.config()
-
-const refreshTokens = []
 
 export default class AuthenticationController {
   registerUser = async (req, res, next) => {
@@ -55,7 +53,7 @@ export default class AuthenticationController {
         refreshSecretKey
       )
 
-      refreshTokens.push(refreshToken)
+      // refreshTokens.push(refreshToken)
       // await user.save()
 
       res.status(200).json({ accessToken, refreshToken, user })
@@ -85,12 +83,12 @@ export default class AuthenticationController {
   }
 
   setNewPasswordAfterOTP = async (req, res) => {
-    const { email, otp, newPassword } = req.body
+    const { email, newPassword } = req.body
 
-    if (!email || !otp || !newPassword) {
+    if (!email || !newPassword) {
       return res.status(400).json({
         success: false,
-        message: 'Email, OTP and new password are required.',
+        message: 'Email and new password are required.',
       })
     }
 
@@ -162,36 +160,33 @@ export default class AuthenticationController {
     }
   }
 
-  //   refreshToken = async (req, res, next) => {
-  //     try {
-  //       const { refreshToken } = req.body
-  //       const refreshSecretKey = process.env.JWT_REFRESH_SECRET_KEY
+  refreshAccessToken = (req, res) => {
 
-  //       if (!refreshToken) {
-  //         res.status(401)
-  //         throw new Error('Refresh token is required')
-  //       }
-
-  //       const payload = jwt.verify(refreshToken, refreshSecretKey)
-
-  //       const user = await User.findById(payload.userId)
-
-  //       if (!user || user.refreshToken !== refreshToken) {
-  //         res.status(403)
-  //         throw new Error('Invalid refresh token')
-  //       }
-
-  //       const accessToken = jwt.sign(
-  //         { userId: user._id },
-  //         process.env.JWT_SECRET_KEY,
-  //         {
-  //           expiresIn: '1h',
-  //         }
-  //       )
-
-  //       res.status(200).json({ accessToken })
-  //     } catch (error) {
-  //       next(error)
-  //     }
-  //   }
+    if (!refreshToken) {
+      return res.status(401).json({ message: 'Refresh Token is required' })
+    }
+    try {
+      const refreshPayload = jwt.verify(
+        refreshToken,
+        process.env.JWT_REFRESH_KEY
+      )
+      const newAccessToken = tokenGenerator.generateAccessToken(
+        { userId: refreshPayload.userId },
+        process.env.JWT_SECRET_KEY
+      )
+      const newRefreshToken = tokenGenerator.generateRefreshToken(
+        { userId: refreshPayload.userId },
+        process.env.JWT_REFRESH_KEY
+      )
+      console.log(newAccessToken, newRefreshToken)
+      return res.status(200).json({
+        message: 'New Access and Refresh Tokens generated successfully',
+      })
+    } catch (error) {
+      return res.status(401).json({
+        message: 'Session expired. Please login again.',
+        error: error.message,
+      })
+    }
+  }
 }
