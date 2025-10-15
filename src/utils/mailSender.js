@@ -15,6 +15,12 @@ export default async function mailSender(to, subject, html) {
     subject,
     html,
   }
-  console.log(transporter.sendMail(mailOptions))
-  return await transporter.sendMail(mailOptions)
+  try {
+    const info = await transporter.sendMail(mailOptions)
+    console.log(`Email sent to ${to}: ${info.messageId}`)
+    return info
+  } catch (error) {
+    console.error('Error sending email:', error)
+    throw error
+  }
 }

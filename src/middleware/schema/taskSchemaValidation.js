@@ -1,9 +1,6 @@
 import * as yup from 'yup'
-// import { v4 as uuidv4 } from 'uuid'
-// import { getISTLocalizedTime } from '../../utils/utilFn.js'
 
 export const taskCreateSchema = yup.object({
-  // id: yup.string().default(() => uuidv4()),
   title: yup
     .string()
     .trim()
@@ -12,8 +9,6 @@ export const taskCreateSchema = yup.object({
   tags: yup.array().of(yup.string()).default([]),
   isImportant: yup.string().default(''),
   isCompleted: yup.boolean().default(false),
-  // createdAt: yup.string().default(() => getISTLocalizedTime()),
-  // updatedAt: yup.string().default(() => getISTLocalizedTime()),
 })
 
 export const taskUpdateSchema = yup.object({

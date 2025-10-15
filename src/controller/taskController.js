@@ -1,13 +1,14 @@
-import { getISTLocalizedTime } from '../utils/utilFn.js'
 import { Task } from '../model/taskModel.js'
 import mongoose from 'mongoose'
 
 export default class ApiControllerFunctions {
   createTask = async (req, res, next) => {
     try {
-      const newTask = new Task(req.body)
+      const userId = req.user.userId
+      const newTask = new Task({ ...req.body, userId })
       await newTask.save()
       res.status(201).json(newTask)
+
     } catch (err) {
       err.status = 500
       next(err)
@@ -16,12 +17,14 @@ export default class ApiControllerFunctions {
 
   getAllTasks = async (req, res, next) => {
     try {
-      const { search, status = 'all', priority } = req.query
-      const query = {}
+      const userId = req.user.userId
+      const { search, status = 'all', priority, sortBy } = req.query
+      const query = { userId }
 
       if (status === 'completed') {
         query.isCompleted = true
-      } else if (status === 'pending') {
+      } 
+      else if (status === 'pending') {
         query.isCompleted = false
       }
 
@@ -36,9 +39,13 @@ export default class ApiControllerFunctions {
           { tags: { $elemMatch: { $regex: searchRegex } } },
         ]
       }
+      const sortQuery = sortBy
+        ? { [sortBy]: -1, isCompleted: 1 }
+        : { updatedAt: -1, isCompleted: 1 }
 
-      const tasks = await Task.find(query).sort({ updatedAt: -1 })
+      const tasks = await Task.find(query).sort(sortQuery)
       res.json(tasks)
+
     } catch (err) {
       err.status = 500
       next(err)
@@ -48,6 +55,7 @@ export default class ApiControllerFunctions {
   deleteTask = async (req, res, next) => {
     try {
       const { id } = req.params
+      const userId = req.user.userId
 
       if (!mongoose.Types.ObjectId.isValid(id)) {
         const error = new Error('Invalid task ID')
@@ -55,7 +63,7 @@ export default class ApiControllerFunctions {
         return next(error)
       }
 
-      const deletedTask = await Task.findByIdAndDelete(id)
+      const deletedTask = await Task.findByIdAndDelete({ _id: id, userId })
 
       if (!deletedTask) {
         const error = new Error('Task not found')
@@ -72,7 +80,8 @@ export default class ApiControllerFunctions {
 
   clearAllTasks = async (req, res, next) => {
     try {
-      await Task.deleteMany({})
+      const userId = req.user.userId
+      await Task.deleteMany({ userId })
       res.json({ message: 'All tasks cleared' })
     } catch (err) {
       err.status = 500
@@ -82,6 +91,7 @@ export default class ApiControllerFunctions {
 
   updateTask = async (req, res, next) => {
     const { id } = req.params
+    const userId = req.user.userId
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
       const error = new Error('Invalid task ID')
@@ -90,9 +100,9 @@ export default class ApiControllerFunctions {
     }
 
     try {
-      const updateData = { ...req.body, updatedAt: getISTLocalizedTime() }
+      const updateData = { ...req.body, updatedAt: new Date() }
       const updatedTask = await Task.findByIdAndUpdate(
-        id,
+        { _id: id, userId },
         { $set: updateData },
         { new: true }
       )
@@ -104,6 +114,7 @@ export default class ApiControllerFunctions {
       }
 
       res.json(updatedTask)
+      
     } catch (err) {
       err.status = 500
       next(err)

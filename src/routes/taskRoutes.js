@@ -3,7 +3,7 @@ import ApiControllerFunctions from '../controller/taskController.js'
 import {
   validateCreateTodo,
   validateUpdateTodo,
-} from '../middleware/taskValidator.js'
+} from '../middleware/validator/taskValidator.js'
 
 const apiControllerFunctions = new ApiControllerFunctions()
 

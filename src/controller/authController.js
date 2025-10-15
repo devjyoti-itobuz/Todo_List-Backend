@@ -20,6 +20,7 @@ export default class AuthenticationController {
 
       res.status(201).json({ success: true, user })
     } catch (error) {
+      error.status = 404
       next(error)
     }
   }
@@ -31,17 +32,21 @@ export default class AuthenticationController {
       const { email, password } = req.body
       const user = await User.findOne({ email })
 
-      if (!user) {
-        res.status(404)
-        throw new Error('User not found!')
-      }
+       if (!user) {
+         return res.status(404).json({ message: 'User not found!' })
+       }
 
-      const passwordMatched = await bcrypt.compare(password, user.password)
+       const passwordMatched = await bcrypt.compare(password, user.password)
 
-      if (!passwordMatched) {
-        res.status(401)
-        throw new Error('Authentication failed, password not matched')
-      }
+       if (!passwordMatched) {
+         return res
+           .status(401)
+           .json({ message: 'Authentication failed, password not matched' })
+       }
+
+       if (!user.verified) {
+         return res.status(403).json({ message: 'Email not verified' })
+       }
 
       const accessToken = tokenGenerator.generateAccessToken(
         { userId: user._id },
@@ -53,36 +58,13 @@ export default class AuthenticationController {
         refreshSecretKey
       )
 
-      // refreshTokens.push(refreshToken)
-      // await user.save()
-
       res.status(200).json({ accessToken, refreshToken, user })
     } catch (error) {
       next(error)
     }
   }
 
-  logoutUser = async (req, res, next) => {
-    try {
-      const { userId } = req.body
-
-      const user = await User.findById(userId)
-
-      if (!user) {
-        res.status(404)
-        throw new Error('User not found')
-      }
-
-      //   user.refreshToken = null
-      await user.save()
-
-      res.status(200).json({ message: 'Logged out successfully' })
-    } catch (error) {
-      next(error)
-    }
-  }
-
-  setNewPasswordAfterOTP = async (req, res) => {
+  setNewPasswordAfterOTP = async (req, res, next) => {
     const { email, newPassword } = req.body
 
     if (!email || !newPassword) {
@@ -109,16 +91,11 @@ export default class AuthenticationController {
         message: 'Password updated successfully.',
       })
     } catch (error) {
-      console.error(error)
-      return res.status(500).json({
-        success: false,
-        message: 'An error occurred while updating the password.',
-      })
+      next(error)
     }
   }
 
-  resetPassword = async (req, res) => {
-    // const { email } = req.user
+  resetPassword = async (req, res, next) => {
     const { email, currentPassword, newPassword } = req.body
 
     if (!currentPassword || !newPassword) {
@@ -152,41 +129,41 @@ export default class AuthenticationController {
         message: 'Password reset successfully.',
       })
     } catch (error) {
-      console.error(error)
-      return res.status(500).json({
-        success: false,
-        message: 'An error occurred while resetting the password.',
-      })
+      error.status=400
+      next(error)
     }
   }
 
-  refreshAccessToken = (req, res) => {
+  refreshAccessToken = (req, res, next) => {
+    const { refreshToken } = req.body
 
     if (!refreshToken) {
       return res.status(401).json({ message: 'Refresh Token is required' })
     }
     try {
+      console.log(refreshToken)
       const refreshPayload = jwt.verify(
         refreshToken,
-        process.env.JWT_REFRESH_KEY
+        process.env.JWT_REFRESH_SECRET_KEY
       )
+      console.log(refreshPayload)
       const newAccessToken = tokenGenerator.generateAccessToken(
         { userId: refreshPayload.userId },
         process.env.JWT_SECRET_KEY
       )
+
       const newRefreshToken = tokenGenerator.generateRefreshToken(
-        { userId: refreshPayload.userId },
-        process.env.JWT_REFRESH_KEY
+        { userId: refreshPayload.userId},
+        process.env.JWT_REFRESH_SECRET_KEY
       )
       console.log(newAccessToken, newRefreshToken)
       return res.status(200).json({
         message: 'New Access and Refresh Tokens generated successfully',
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
       })
     } catch (error) {
-      return res.status(401).json({
-        message: 'Session expired. Please login again.',
-        error: error.message,
-      })
+      next(error)
     }
   }
 }

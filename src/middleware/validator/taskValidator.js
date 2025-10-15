@@ -1,4 +1,7 @@
-import userValidationSchema from './schema/userSchemaValidation.js'
+import {
+  taskCreateSchema,
+  taskUpdateSchema,
+} from '../schema/taskSchemaValidation.js'
 
 const validateRequest = (schema) => async (req, res, next) => {
 
@@ -19,4 +22,5 @@ const validateRequest = (schema) => async (req, res, next) => {
   }
 }
 
-export const validateUserSchema = validateRequest(userValidationSchema)
+export const validateCreateTodo = validateRequest(taskCreateSchema)
+export const validateUpdateTodo = validateRequest(taskUpdateSchema)
