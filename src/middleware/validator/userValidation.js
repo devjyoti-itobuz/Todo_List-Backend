@@ -1,4 +1,4 @@
-import userValidationSchema from '../schema/userSchemaValidation.js'
+import {userValidationSchema, passwordValidationSchema} from '../schema/userSchemaValidation.js'
 
 const validateRequest = (schema) => async (req, res, next) => {
 
@@ -20,3 +20,4 @@ const validateRequest = (schema) => async (req, res, next) => {
 }
 
 export const validateUserSchema = validateRequest(userValidationSchema)
+export const passwordValidateSchema = validateRequest(passwordValidationSchema)

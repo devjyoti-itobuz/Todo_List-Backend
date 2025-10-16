@@ -18,9 +18,10 @@ export const verifyToken = async (req, res, next) => {
 
     try {
       const decoded = await jwt.verify(accessToken, secretKey)
-      console.log('Decoded JWT:', decoded)
 
+      console.log('Decoded JWT:', decoded)
       req.user = decoded
+      
       return next()
 
     } catch (error) {

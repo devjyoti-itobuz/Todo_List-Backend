@@ -15,13 +15,14 @@ const PORT = process.env.PORT
 await connectDB()
 app.use(cors())
 app.use(express.json())
-app.use(errorHandler)
 
 app.use(loggerMiddleware)
 app.use('/auth', authRouter)
 app.use('/auth/protected', protectedRoute)
 
 app.use('/api/tasks', verifyToken, tasksRouter)
+
+app.use(errorHandler)
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`)
