@@ -5,7 +5,9 @@ const MONGO_URI = process.env.MONGO_URI
 
 export const connectDB = async () => {
   try {
-    await mongoose.connect(MONGO_URI)
+    await mongoose.connect(MONGO_URI, {
+      dbName: 'tasks',
+    });
     console.log('MongoDB connected successfully')
     
   } catch (error) {
