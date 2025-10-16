@@ -16,6 +16,7 @@ export default function loggerMiddleware(req, res, next) {
     console.log(':::::::::::::::::::::Request Ends:::::::::::::::::::::')
 
     next()
+    
   } catch (error) {
     next(error)
   }

@@ -21,7 +21,6 @@ app.use(loggerMiddleware)
 app.use('/auth', authRouter)
 app.use('/auth/protected', protectedRoute)
 
-
 app.use('/api/tasks', verifyToken, tasksRouter)
 
 app.listen(PORT, () => {

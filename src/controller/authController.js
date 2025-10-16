@@ -14,11 +14,12 @@ export default class AuthenticationController {
       const { email, password } = req.body
       const hashedPass = await bcrypt.hash(password, 10)
       //   console.log(username, password, hashedPass)
-
       const user = new User({ email, password: hashedPass })
+
       await user.save()
 
       res.status(201).json({ success: true, user })
+
     } catch (error) {
       error.status = 404
       next(error)
@@ -59,6 +60,7 @@ export default class AuthenticationController {
       )
 
       res.status(200).json({ accessToken, refreshToken, user })
+
     } catch (error) {
       next(error)
     }
@@ -76,6 +78,7 @@ export default class AuthenticationController {
 
     try {
       const user = await User.findOne({ email })
+
       if (!user) {
         return res
           .status(404)
@@ -84,12 +87,14 @@ export default class AuthenticationController {
 
       const hashedPassword = await bcrypt.hash(newPassword, 10)
       user.password = hashedPassword
+
       await user.save()
 
       return res.status(200).json({
         success: true,
         message: 'Password updated successfully.',
       })
+
     } catch (error) {
       next(error)
     }
@@ -107,6 +112,7 @@ export default class AuthenticationController {
 
     try {
       const user = await User.findOne({ email })
+
       if (!user) {
         return res
           .status(404)
@@ -114,6 +120,7 @@ export default class AuthenticationController {
       }
 
       const isMatch = await bcrypt.compare(currentPassword, user.password)
+
       if (!isMatch) {
         return res
           .status(401)
@@ -122,12 +129,14 @@ export default class AuthenticationController {
 
       const hashedPassword = await bcrypt.hash(newPassword, 10)
       user.password = hashedPassword
+      
       await user.save()
 
       return res.status(200).json({
         success: true,
         message: 'Password reset successfully.',
       })
+      
     } catch (error) {
       error.status=400
       next(error)
@@ -140,13 +149,16 @@ export default class AuthenticationController {
     if (!refreshToken) {
       return res.status(401).json({ message: 'Refresh Token is required' })
     }
+
     try {
       console.log(refreshToken)
       const refreshPayload = jwt.verify(
         refreshToken,
         process.env.JWT_REFRESH_SECRET_KEY
       )
+
       console.log(refreshPayload)
+
       const newAccessToken = tokenGenerator.generateAccessToken(
         { userId: refreshPayload.userId },
         process.env.JWT_SECRET_KEY
@@ -156,12 +168,15 @@ export default class AuthenticationController {
         { userId: refreshPayload.userId},
         process.env.JWT_REFRESH_SECRET_KEY
       )
+
       console.log(newAccessToken, newRefreshToken)
+
       return res.status(200).json({
         message: 'New Access and Refresh Tokens generated successfully',
         accessToken: newAccessToken,
         refreshToken: newRefreshToken,
       })
+
     } catch (error) {
       next(error)
     }

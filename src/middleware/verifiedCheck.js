@@ -10,9 +10,10 @@ export default async function isVerified(req, res, next) {
         success: false,
         message: 'User is already registered and verified',
       })
-
     }
+
     next()
+    
   } catch (error) {
     next(error)
   }

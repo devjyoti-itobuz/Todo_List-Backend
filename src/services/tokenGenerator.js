@@ -4,6 +4,7 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 export default class TokenGenerator {
+  
   generateAccessToken(userId, secretKey) {
     return jwt.sign(userId, secretKey, {
       expiresIn: process.env.ACCESS_TOKEN_TIME,

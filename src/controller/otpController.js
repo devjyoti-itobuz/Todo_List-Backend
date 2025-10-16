@@ -29,6 +29,7 @@ export default class OtpControllerFunctions {
         message: 'OTP sent successfully',
         otp,
       })
+
     } catch (error) {
       error.status = 500
       next(error)
@@ -71,10 +72,12 @@ export default class OtpControllerFunctions {
 
       if (userExists) {
         userExists.verified = true
+
         await userExists.save()
       }
 
       return res.status(200).json({ success: true, message: 'OTP is valid.' })
+      
     } catch (error) {
       error.status = 500
       next(error)

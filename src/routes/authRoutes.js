@@ -19,7 +19,6 @@ authRouter.post('/login', validateUserSchema, authentication.loginUser)
 
 authRouter.post('/refresh-token', authentication.refreshAccessToken)
 
-// authRouter.post('/logout', authentication.logoutUser)
 authRouter.post('/sendOTP', isVerified, otpControl.sendOTP)
 authRouter.post('/verifyOTP', isVerified, otpControl.verifyOTP)
 

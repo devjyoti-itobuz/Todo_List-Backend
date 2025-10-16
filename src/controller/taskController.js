@@ -6,7 +6,9 @@ export default class ApiControllerFunctions {
     try {
       const userId = req.user.userId
       const newTask = new Task({ ...req.body, userId })
+
       await newTask.save()
+
       res.status(201).json(newTask)
 
     } catch (err) {
@@ -23,7 +25,7 @@ export default class ApiControllerFunctions {
 
       if (status === 'completed') {
         query.isCompleted = true
-      } 
+      }
       else if (status === 'pending') {
         query.isCompleted = false
       }
@@ -39,11 +41,13 @@ export default class ApiControllerFunctions {
           { tags: { $elemMatch: { $regex: searchRegex } } },
         ]
       }
+
       const sortQuery = sortBy
         ? { [sortBy]: -1, isCompleted: 1 }
         : { updatedAt: -1, isCompleted: 1 }
 
       const tasks = await Task.find(query).sort(sortQuery)
+
       res.json(tasks)
 
     } catch (err) {
@@ -63,7 +67,7 @@ export default class ApiControllerFunctions {
         return next(error)
       }
 
-      const deletedTask = await Task.findByIdAndDelete({ _id: id, userId })
+      const deletedTask = await Task.findOneAndDelete({ _id: id, userId })
 
       if (!deletedTask) {
         const error = new Error('Task not found')
@@ -72,6 +76,7 @@ export default class ApiControllerFunctions {
       }
 
       res.status(204).send()
+
     } catch (err) {
       err.status = 500
       next(err)
@@ -81,8 +86,11 @@ export default class ApiControllerFunctions {
   clearAllTasks = async (req, res, next) => {
     try {
       const userId = req.user.userId
+
       await Task.deleteMany({ userId })
+      
       res.json({ message: 'All tasks cleared' })
+
     } catch (err) {
       err.status = 500
       next(err)
@@ -100,10 +108,9 @@ export default class ApiControllerFunctions {
     }
 
     try {
-      const updateData = { ...req.body, updatedAt: new Date() }
       const updatedTask = await Task.findByIdAndUpdate(
         { _id: id, userId },
-        { $set: updateData },
+        { $set: req.body },
         { new: true }
       )
 
