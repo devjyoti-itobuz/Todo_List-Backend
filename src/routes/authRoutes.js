@@ -3,6 +3,7 @@ import AuthenticationController from '../controller/authController.js'
 import OtpControllerFunctions from '../controller/otpController.js'
 import { validateUserSchema } from '../middleware/validator/userValidation.js'
 import isVerified from '../middleware/verifiedCheck.js'
+import { verifyToken } from '../middleware/verifyToken.js'
 
 const authRouter = Router()
 
@@ -26,6 +27,6 @@ authRouter.post('/forgot-password/sendOTP', otpControl.sendOTP)
 authRouter.post('/forgot-password/verifyOTP', otpControl.verifyOTP)
 authRouter.post('/forgot-password/reset', authentication.setNewPasswordAfterOTP)
 
-authRouter.post('/reset-password', authentication.resetPassword)
+authRouter.post('/reset-password', verifyToken, authentication.resetPassword)
 
 export default authRouter

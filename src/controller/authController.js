@@ -101,8 +101,9 @@ export default class AuthenticationController {
   }
 
   resetPassword = async (req, res, next) => {
-    const { email, currentPassword, newPassword } = req.body
-
+    const userId = req.user.userId
+    const { currentPassword, newPassword } = req.body
+    console.log(userId)
     if (!currentPassword || !newPassword) {
       return res.status(400).json({
         success: false,
@@ -111,7 +112,7 @@ export default class AuthenticationController {
     }
 
     try {
-      const user = await User.findOne({ email })
+      const user = await User.findById(userId)
 
       if (!user) {
         return res
