@@ -12,6 +12,14 @@ export default class AuthenticationController {
   registerUser = async (req, res, next) => {
     try {
       const { email, password } = req.body
+      const existingUser = await User.findOne({ email })
+
+      if (existingUser) {
+        const error = new Error('User already exists')
+        error.status = 409
+        throw error
+      }
+
       const hashedPass = await bcrypt.hash(password, 10)
       //   console.log(username, password, hashedPass)
       const user = new User({ email, password: hashedPass })
@@ -179,6 +187,7 @@ export default class AuthenticationController {
       })
 
     } catch (error) {
+      error.status = 401
       next(error)
     }
   }
