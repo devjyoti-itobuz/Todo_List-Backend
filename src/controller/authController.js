@@ -17,7 +17,7 @@ export default class AuthenticationController {
       if (existingUser) {
         const error = new Error('User already exists')
         error.status = 409
-        throw error
+        return next(error)
       }
 
       const hashedPass = await bcrypt.hash(password, 10)
@@ -26,10 +26,16 @@ export default class AuthenticationController {
 
       await user.save()
 
-      res.status(201).json({ success: true, user })
+      res
+        .status(201)
+        .json({
+          success: true,
+          user,
+          message: 'User registered successfully.',
+        })
 
     } catch (error) {
-      error.status = 404
+      // error.status = error.status || 400
       next(error)
     }
   }
@@ -42,19 +48,23 @@ export default class AuthenticationController {
       const user = await User.findOne({ email })
 
        if (!user) {
-         return res.status(404).json({ message: 'User not found!' })
+         const error = new Error('User not found!')
+         error.status = 404
+         return next(error)
        }
 
        const passwordMatched = await bcrypt.compare(password, user.password)
 
        if (!passwordMatched) {
-         return res
-           .status(401)
-           .json({ message: 'Authentication failed, password not matched' })
+         const error = new Error('Authentication failed, password not matched')
+         error.status = 401
+         return next(error)
        }
 
        if (!user.verified) {
-         return res.status(403).json({ message: 'Email not verified' })
+         const error = new Error('Email not verified')
+         error.status = 403
+         return next(error)
        }
 
       const accessToken = tokenGenerator.generateAccessToken(
@@ -67,7 +77,14 @@ export default class AuthenticationController {
         refreshSecretKey
       )
 
-      res.status(200).json({ accessToken, refreshToken, user })
+      res
+        .status(200)
+        .json({
+          accessToken,
+          refreshToken,
+          user,
+          message: 'User login successfully.',
+        })
 
     } catch (error) {
       next(error)
@@ -78,19 +95,18 @@ export default class AuthenticationController {
     const { email, newPassword } = req.body
 
     if (!email || !newPassword) {
-      return res.status(400).json({
-        success: false,
-        message: 'Email and new password are required.',
-      })
+      const error = new Error('Email and new password are required.')
+      error.status = 400
+      return next(error)
     }
 
     try {
       const user = await User.findOne({ email })
 
       if (!user) {
-        return res
-          .status(404)
-          .json({ success: false, message: 'User not found.' })
+        const error = new Error('User not found.')
+        error.status = 404
+        return next(error)
       }
 
       const hashedPassword = await bcrypt.hash(newPassword, 10)
@@ -112,28 +128,28 @@ export default class AuthenticationController {
     const userId = req.user.userId
     const { currentPassword, newPassword } = req.body
     console.log(userId)
+
     if (!currentPassword || !newPassword) {
-      return res.status(400).json({
-        success: false,
-        message: 'Current password and new password are required.',
-      })
+      const error = new Error('Current password and new password are required.')
+      error.status = 400
+      return next(error)
     }
 
     try {
       const user = await User.findById(userId)
 
       if (!user) {
-        return res
-          .status(404)
-          .json({ success: false, message: 'User not found.' })
+        const error = new Error('User not found.')
+        error.status = 404
+        return next(error)
       }
 
       const isMatch = await bcrypt.compare(currentPassword, user.password)
 
       if (!isMatch) {
-        return res
-          .status(401)
-          .json({ success: false, message: 'Current password is incorrect.' })
+        const error = new Error('Current password is incorrect.')
+        error.status = 401
+        return next(error)
       }
 
       const hashedPassword = await bcrypt.hash(newPassword, 10)
@@ -147,7 +163,7 @@ export default class AuthenticationController {
       })
       
     } catch (error) {
-      error.status=400
+      // error.status=400
       next(error)
     }
   }
@@ -156,7 +172,9 @@ export default class AuthenticationController {
     const refreshToken = req.headers['refresh-token']
 
     if (!refreshToken) {
-      return res.status(401).json({ message: 'Refresh Token is required' })
+      const error = new Error('Refresh Token is required')
+      error.status = 401
+      return next(error)
     }
 
     try {

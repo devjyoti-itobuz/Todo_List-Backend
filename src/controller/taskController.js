@@ -9,10 +9,13 @@ export default class ApiControllerFunctions {
 
       await newTask.save()
 
-      res.status(201).json(newTask)
+      res.status(201).json({
+        message: 'Task created successfully',
+        task: newTask,
+      })
 
     } catch (err) {
-      err.status = 500
+      // err.status = 500
       next(err)
     }
   }
@@ -48,10 +51,14 @@ export default class ApiControllerFunctions {
 
       const tasks = await Task.find(query).sort(sortQuery)
 
-      res.json(tasks)
+      res.json({
+        message: tasks.length ? 'Tasks fetched successfully' : 'No tasks found',
+        count: tasks.length,
+        tasks,
+      })
 
     } catch (err) {
-      err.status = 500
+      // err.status = 500
       next(err)
     }
   }
@@ -75,10 +82,12 @@ export default class ApiControllerFunctions {
         return next(error)
       }
 
-      res.status(204).send()
+      res.json({
+        message: 'Task deleted successfully',
+        taskId: id,
+      })
 
     } catch (err) {
-      err.status = 500
       next(err)
     }
   }
@@ -92,7 +101,7 @@ export default class ApiControllerFunctions {
       res.json({ message: 'All tasks cleared' })
 
     } catch (err) {
-      err.status = 500
+      // err.status = 500
       next(err)
     }
   }
@@ -120,10 +129,13 @@ export default class ApiControllerFunctions {
         return next(error)
       }
 
-      res.json(updatedTask)
+      res.json({
+        message: 'Task updated successfully',
+        task: updatedTask,
+      })
       
     } catch (err) {
-      err.status = 500
+      // err.status = 500
       next(err)
     }
   }
