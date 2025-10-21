@@ -76,7 +76,7 @@ export default class OtpControllerFunctions {
         await userExists.save()
       }
 
-      return res.status(200).json({ success: true, message: 'OTP is valid.' })
+      return res.status(200).json({ success: true, message: 'OTP is valid. Log in now.' })
 
     } catch (error) {
       next(error)
