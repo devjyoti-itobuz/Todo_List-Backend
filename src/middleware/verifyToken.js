@@ -17,7 +17,7 @@ export const verifyToken = async (req, res, next) => {
     }
 
     try {
-      const decoded = await jwt.verify(accessToken, secretKey)
+      const decoded = jwt.verify(accessToken, secretKey)
 
       console.log('Decoded JWT:', decoded)
       req.user = decoded
@@ -38,8 +38,6 @@ export const verifyToken = async (req, res, next) => {
     }
     
   } catch (error) {
-    return res.status(500).json({
-      message: `Internal server error. ${error}`,
-    })
+    next(error)
   }
 }

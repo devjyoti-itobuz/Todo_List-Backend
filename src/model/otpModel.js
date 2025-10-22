@@ -10,7 +10,7 @@ const otpSubSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
-    expiryOTP: {
+    expiryOtp: {
       type: Date,
       default: () => new Date(Date.now() + 5 * 60 * 1000),
     },
@@ -27,6 +27,6 @@ const otpSchema = new mongoose.Schema({
   otps: [otpSubSchema],
 })
 
-const otpSchem = mongoose.model('OTP', otpSchema)
+const otpSchemaa = mongoose.model('OTP', otpSchema)
 
-export default otpSchem
+export default otpSchemaa

@@ -1,18 +1,18 @@
 import express from 'express'
-import ApiControllerFunctions from '../controller/taskController.js'
+import TaskControllerFunctions from '../controller/taskController.js'
 import {
   validateCreateTodo,
   validateUpdateTodo,
 } from '../middleware/validator/taskValidator.js'
 
-const apiControllerFunctions = new ApiControllerFunctions()
+const taskControllerFunctions = new TaskControllerFunctions()
 
 const router = express.Router()
 
-router.get('/', apiControllerFunctions.getAllTasks)
-router.post('/', validateCreateTodo, apiControllerFunctions.createTask)
-router.put('/:id', validateUpdateTodo, apiControllerFunctions.updateTask)
-router.delete('/:id', apiControllerFunctions.deleteTask)
-router.delete('/', apiControllerFunctions.clearAllTasks)
+router.get('/', taskControllerFunctions.getAllTasks)
+router.post('/', validateCreateTodo, taskControllerFunctions.createTask)
+router.put('/:id', validateUpdateTodo, taskControllerFunctions.updateTask)
+router.delete('/:id', taskControllerFunctions.deleteTask)
+router.delete('/', taskControllerFunctions.clearAllTasks)
 
 export default router

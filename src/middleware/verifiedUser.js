@@ -1,6 +1,6 @@
 import User from '../model/userModel.js'
 
-export default async function isVerified(req, res, next) {
+export default async function verifiedUser(req, res, next) {
   try {
     const { email } = req.body
     const userExists = await User.findOne({ email })

@@ -91,7 +91,7 @@ export default class AuthenticationController {
     }
   }
 
-  setNewPasswordAfterOTP = async (req, res, next) => {
+  setNewPasswordAfterOtp = async (req, res, next) => {
     const { email, newPassword } = req.body
 
     if (!email || !newPassword) {
@@ -205,7 +205,7 @@ export default class AuthenticationController {
       })
 
     } catch (error) {
-      error.status = 401
+      // error.status = 401
       next(error)
     }
   }

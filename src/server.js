@@ -3,7 +3,7 @@ import express from 'express'
 import tasksRouter from './routes/taskRoutes.js'
 import cors from 'cors'
 import { errorHandler } from './error/errorHandler.js'
-import { connectDB } from './db/mongoClient.js'
+import { connectDb } from './db/mongoClient.js'
 import authRouter from './routes/authRoutes.js'
 import loggerMiddleware from './middleware/loggerMiddleware.js'
 import protectedRoute from './routes/authProtectedRoute.js'
@@ -12,7 +12,7 @@ import { verifyToken } from './middleware/verifyToken.js'
 const app = express()
 const PORT = process.env.PORT
 
-await connectDB()
+await connectDb()
 app.use(cors())
 app.use(express.json())
 

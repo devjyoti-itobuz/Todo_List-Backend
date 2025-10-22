@@ -1,7 +1,7 @@
 import { Task } from '../model/taskModel.js'
 import mongoose from 'mongoose'
 
-export default class ApiControllerFunctions {
+export default class TaskControllerFunctions {
   createTask = async (req, res, next) => {
     try {
       const userId = req.user.userId

@@ -2,7 +2,7 @@ import { Router } from 'express'
 import AuthenticationController from '../controller/authController.js'
 import OtpControllerFunctions from '../controller/otpController.js'
 import { validateUserSchema } from '../middleware/validator/userValidation.js'
-import isVerified from '../middleware/verifiedCheck.js'
+import verifiedUser from '../middleware/verifiedUser.js'
 import { verifyToken } from '../middleware/verifyToken.js'
 
 const authRouter = Router()
@@ -20,12 +20,12 @@ authRouter.post('/login', validateUserSchema, authentication.loginUser)
 
 authRouter.post('/refresh-token', authentication.refreshAccessToken)
 
-authRouter.post('/sendOTP', isVerified, otpControl.sendOTP)
-authRouter.post('/verifyOTP', isVerified, otpControl.verifyOTP)
+authRouter.post('/sendOTP', verifiedUser, otpControl.sendOtp)
+authRouter.post('/verifyOTP', verifiedUser, otpControl.verifyOtp)
 
-authRouter.post('/forgot-password/sendOTP', otpControl.sendOTP)
-authRouter.post('/forgot-password/verifyOTP', otpControl.verifyOTP)
-authRouter.post('/forgot-password/reset', authentication.setNewPasswordAfterOTP)
+authRouter.post('/forgot-password/sendOTP', otpControl.sendOtp)
+authRouter.post('/forgot-password/verifyOTP', otpControl.verifyOtp)
+authRouter.post('/forgot-password/reset', authentication.setNewPasswordAfterOtp)
 
 authRouter.post('/reset-password', verifyToken, authentication.resetPassword)
 

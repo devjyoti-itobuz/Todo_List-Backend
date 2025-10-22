@@ -1,7 +1,7 @@
 import OTP from '../model/otpModel.js'
 import mailSender from '../utils/mailSender.js'
 
-export async function createAndSendOTP(email, otpValue) {
+export async function createAndSendOtp(email, otpValue) {
   try {
 
     await mailSender(
