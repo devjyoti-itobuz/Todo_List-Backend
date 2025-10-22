@@ -1,5 +1,32 @@
 import OTP from '../model/otpModel.js'
 import mailSender from '../utils/mailSender.js'
+import otpSchema from '../model/otpModel.js'
+
+export async function validateOtp(email, otp) {
+  const userOtpEntry = await otpSchema.findOne({ email })
+
+  if (!userOtpEntry || userOtpEntry.otps.length === 0) {
+    const error = new Error('No OTP found for this email.')
+    error.status = 404
+    throw error
+  }
+
+  const latestOtp = userOtpEntry.otps[userOtpEntry.otps.length - 1]
+
+  if (latestOtp.otp !== otp) {
+    const error = new Error('Invalid OTP.')
+    error.status = 401
+    throw error
+  }
+
+  if (new Date() > new Date(latestOtp.expiryOtp)) {
+    const error = new Error('OTP has expired.')
+    error.status = 410
+    throw error
+  }
+
+  return true
+}
 
 export async function createAndSendOtp(email, otpValue) {
   try {

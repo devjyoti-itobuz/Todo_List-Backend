@@ -2,6 +2,8 @@ import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
 import dotenv from 'dotenv'
 import User from '../model/userModel.js'
+// import otpSchema from '../model/otpModel.js'
+import { validateOtp } from '../services/otpService.js'
 import TokenGenerator from '../services/tokenGenerator.js'
 
 const tokenGenerator = new TokenGenerator()
@@ -92,15 +94,39 @@ export default class AuthenticationController {
   }
 
   setNewPasswordAfterOtp = async (req, res, next) => {
-    const { email, newPassword } = req.body
+    const { email, otp, newPassword } = req.body
 
-    if (!email || !newPassword) {
+    if (!email || !otp || !newPassword) {
       const error = new Error('Email and new password are required.')
       error.status = 400
       return next(error)
     }
 
     try {
+      // const userOtpEntry = await otpSchema.findOne({ email })
+
+      // if (!userOtpEntry || userOtpEntry.otps.length === 0) {
+      //   const error = new Error('No OTP found for this email.')
+      //   error.status = 404
+      //   return next(error)
+      // }
+
+      // const latestOtp = userOtpEntry.otps[userOtpEntry.otps.length - 1]
+
+      // if (latestOtp.otp !== otp) {
+      //   const error = new Error('Invalid OTP.')
+      //   error.status = 401
+      //   return next(error)
+      // }
+
+      // if (new Date() > new Date(latestOtp.expiryOtp)) {
+      //   const error = new Error('OTP has expired.')
+      //   error.status = 410
+      //   return next(error)
+      // }
+
+      await validateOtp(email, otp)
+
       const user = await User.findOne({ email })
 
       if (!user) {

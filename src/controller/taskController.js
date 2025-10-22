@@ -23,7 +23,7 @@ export default class TaskControllerFunctions {
   getAllTasks = async (req, res, next) => {
     try {
       const userId = req.user.userId
-      const { search, status = 'all', priority, sortBy } = req.query
+      const { search, status = 'all', priority } = req.query
       const query = { userId }
 
       if (status === 'completed') {
@@ -45,9 +45,10 @@ export default class TaskControllerFunctions {
         ]
       }
 
-      const sortQuery = sortBy
-        ? { [sortBy]: -1, isCompleted: 1 }
-        : { updatedAt: -1, isCompleted: 1 }
+      // const sortQuery = sortBy
+      //   ? { [sortBy]: -1, isCompleted: 1 }
+      //   : { updatedAt: -1, isCompleted: 1 }
+      const sortQuery = {updatedAt: -1, isCompleted: 1};
 
       const tasks = await Task.find(query).sort(sortQuery)
 

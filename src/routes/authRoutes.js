@@ -24,7 +24,7 @@ authRouter.post('/sendOTP', verifiedUser, otpControl.sendOtp)
 authRouter.post('/verifyOTP', verifiedUser, otpControl.verifyOtp)
 
 authRouter.post('/forgot-password/sendOTP', otpControl.sendOtp)
-authRouter.post('/forgot-password/verifyOTP', otpControl.verifyOtp)
+// authRouter.post('/forgot-password/verifyOTP', otpControl.verifyOtp)
 authRouter.post('/forgot-password/reset', authentication.setNewPasswordAfterOtp)
 
 authRouter.post('/reset-password', verifyToken, authentication.resetPassword)

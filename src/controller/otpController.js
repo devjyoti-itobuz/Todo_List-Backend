@@ -1,5 +1,6 @@
 import otpGenerator from 'otp-generator'
-import otpSchema from '../model/otpModel.js'
+// import otpSchema from '../model/otpModel.js'
+import { validateOtp } from '../services/otpService.js'
 import User from '../model/userModel.js'
 import { createAndSendOtp } from '../services/otpService.js'
 
@@ -47,27 +48,28 @@ export default class OtpControllerFunctions {
     }
 
     try {
-      const userOtpEntry = await otpSchema.findOne({ email })
+      await validateOtp(email, otp)
+      // const userOtpEntry = await otpSchema.findOne({ email })
 
-      if (!userOtpEntry || userOtpEntry.otps.length === 0) {
-        const error = new Error('No OTP found for this email.')
-        error.status = 404
-        return next(error)
-      }
+      // if (!userOtpEntry || userOtpEntry.otps.length === 0) {
+      //   const error = new Error('No OTP found for this email.')
+      //   error.status = 404
+      //   return next(error)
+      // }
 
-      const latestOtp = userOtpEntry.otps[userOtpEntry.otps.length - 1]
+      // const latestOtp = userOtpEntry.otps[userOtpEntry.otps.length - 1]
 
-      if (latestOtp.otp !== otp) {
-        const error = new Error('Invalid OTP.')
-        error.status = 401
-        return next(error)
-      }
+      // if (latestOtp.otp !== otp) {
+      //   const error = new Error('Invalid OTP.')
+      //   error.status = 401
+      //   return next(error)
+      // }
 
-      if (new Date() > new Date(latestOtp.expiryOtp)) {
-        const error = new Error('OTP has expired.')
-        error.status = 410
-        return next(error)
-      }
+      // if (new Date() > new Date(latestOtp.expiryOtp)) {
+      //   const error = new Error('OTP has expired.')
+      //   error.status = 410
+      //   return next(error)
+      // }
 
       const userExists = await User.findOne({ email })
 
