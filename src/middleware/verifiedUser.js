@@ -5,11 +5,12 @@ export default async function verifiedUser(req, res, next) {
     const { email } = req.body
     const userExists = await User.findOne({ email })
     
+    if (!userExists) {
+      throw { status: 404, message: 'User not found' }
+    }
+
     if (userExists.verified) {
-      return res.status(401).json({
-        success: false,
-        message: 'User is already registered and verified',
-      })
+      throw { status: 401, message: 'User is already registered and verified' }
     }
 
     next()

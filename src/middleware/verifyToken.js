@@ -11,9 +11,7 @@ export const verifyToken = async (req, res, next) => {
     const accessToken = authHeader && authHeader.split(' ')[1]
 
     if (!accessToken) {
-      return res.status(401).json({
-        message: 'Access denied. No token provided.',
-      })
+      throw { status: 401, message: 'Access denied. No token provided.' }
     }
 
     try {
@@ -27,14 +25,10 @@ export const verifyToken = async (req, res, next) => {
     } catch (error) {
 
       if (error.name === 'TokenExpiredError') {
-        return res.status(401).json({
-          message: 'jwt expired',
-        })
+        throw { status: 401, message: 'jwt expired' }
       }
 
-      return res.status(401).json({
-        message: 'Invalid access token',
-      })
+      throw { status: 401, message: 'Invalid access token' }
     }
     
   } catch (error) {
