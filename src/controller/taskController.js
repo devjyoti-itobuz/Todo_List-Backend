@@ -1,4 +1,4 @@
-import { Task } from '../model/taskModel.js'
+import Task from '../model/taskModel.js'
 import mongoose from 'mongoose'
 
 export default class TaskControllerFunctions {
@@ -54,7 +54,7 @@ export default class TaskControllerFunctions {
 
       res.json({
         message: tasks.length ? 'Tasks fetched successfully' : 'No tasks found',
-        count: tasks.length,
+        // count: tasks.length,
         tasks,
       })
 

@@ -17,8 +17,8 @@ app.use(cors())
 app.use(express.json())
 
 app.use(loggerMiddleware)
-app.use('/auth', authRouter)
-app.use('/auth/protected', protectedRoute)
+app.use('/user/auth', authRouter)
+app.use('/user/auth/protected', protectedRoute)
 
 app.use('/api/tasks', verifyToken, tasksRouter)
 

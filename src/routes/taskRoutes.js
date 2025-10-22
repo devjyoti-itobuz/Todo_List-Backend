@@ -1,5 +1,5 @@
 import express from 'express'
-import TaskControllerFunctions from '../controller/taskController.js'
+import TaskControllerFunctions from '../controller/TaskController.js'
 import {
   validateCreateTodo,
   validateUpdateTodo,

@@ -58,7 +58,7 @@ export default class AuthenticationController {
        const passwordMatched = await bcrypt.compare(password, user.password)
 
        if (!passwordMatched) {
-         const error = new Error('Authentication failed, password not matched')
+         const error = new Error('Password not matched.')
          error.status = 401
          return next(error)
        }
@@ -195,7 +195,7 @@ export default class AuthenticationController {
   }
 
   refreshAccessToken = (req, res, next) => {
-    const refreshToken = req.headers['refresh-token']
+    const refreshToken = req.headers['refresh_token']
 
     if (!refreshToken) {
       const error = new Error('Refresh Token is required')
