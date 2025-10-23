@@ -1,11 +1,11 @@
 import express from 'express'
-import TaskControllerFunctions from '../controller/TaskController.js'
+import TaskController from '../controller/TaskController.js'
 import {
   validateCreateTodo,
   validateUpdateTodo,
 } from '../middleware/validator/taskValidator.js'
 
-const taskControllerFunctions = new TaskControllerFunctions()
+const taskControllerFunctions = new TaskController()
 
 const router = express.Router()
 

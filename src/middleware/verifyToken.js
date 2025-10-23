@@ -1,12 +1,9 @@
 import jwt from 'jsonwebtoken'
-import dotenv from 'dotenv'
-// import { getUserById } from '../utils/utilFn.js'
-
-dotenv.config()
+import config from '../config/constants.js'
 
 export const verifyToken = async (req, res, next) => {
   try {
-    const secretKey = process.env.JWT_SECRET_KEY
+    const secretKey = config.JWT_SECRET_KEY
     const authHeader = req.header('Authorization')
     const accessToken = authHeader && authHeader.split(' ')[1]
 

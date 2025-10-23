@@ -1,14 +1,13 @@
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
-import dotenv from 'dotenv'
+import config from '../config/constants.js'
 import User from '../model/userModel.js'
-// import otpSchema from '../model/otpModel.js'
 import { validateOtp } from '../services/otpService.js'
 import TokenGenerator from '../services/tokenGenerator.js'
+import otpGenerator from 'otp-generator'
+import { createAndSendOtp } from '../services/otpService.js'
 
 const tokenGenerator = new TokenGenerator()
-
-dotenv.config()
 
 export default class AuthenticationController {
   registerUser = async (req, res, next) => {
@@ -28,14 +27,11 @@ export default class AuthenticationController {
 
       await user.save()
 
-      res
-        .status(201)
-        .json({
-          success: true,
-          user,
-          message: 'User registered successfully.',
-        })
-
+      res.status(201).json({
+        success: true,
+        user,
+        message: 'User registered successfully.',
+      })
     } catch (error) {
       // error.status = error.status || 400
       next(error)
@@ -44,50 +40,106 @@ export default class AuthenticationController {
 
   loginUser = async (req, res, next) => {
     try {
-      const secretKey = process.env.JWT_SECRET_KEY
-      const refreshSecretKey = process.env.JWT_REFRESH_SECRET_KEY
       const { email, password } = req.body
       const user = await User.findOne({ email })
 
-       if (!user) {
-         const error = new Error('User not found!')
-         error.status = 404
-         return next(error)
-       }
+      if (!user) {
+        const error = new Error('User not found!')
+        error.status = 404
+        return next(error)
+      }
 
-       const passwordMatched = await bcrypt.compare(password, user.password)
+      const passwordMatched = await bcrypt.compare(password, user.password)
 
-       if (!passwordMatched) {
-         const error = new Error('Password not matched.')
-         error.status = 401
-         return next(error)
-       }
+      if (!passwordMatched) {
+        const error = new Error('Password not matched.')
+        error.status = 401
+        return next(error)
+      }
 
-       if (!user.verified) {
-         const error = new Error('Email not verified')
-         error.status = 403
-         return next(error)
-       }
+      if (!user.verified) {
+        const error = new Error('Email not verified')
+        error.status = 403
+        return next(error)
+      }
 
-      const accessToken = tokenGenerator.generateAccessToken(
+      const accessToken = tokenGenerator.generateToken(
         { userId: user._id },
-        secretKey
+        config.JWT_SECRET_KEY,
+        { expiresIn: config.ACCESS_TOKEN_TIME }
       )
 
-      const refreshToken = tokenGenerator.generateRefreshToken(
+      const refreshToken = tokenGenerator.generateToken(
         { userId: user._id },
-        refreshSecretKey
+        config.JWT_REFRESH_SECRET_KEY,
+        { expiresIn: config.REFRESH_TOKEN_TIME }
       )
 
-      res
+      res.status(200).json({
+        accessToken,
+        refreshToken,
+        user,
+        message: 'User login successfully.',
+      })
+    } catch (error) {
+      next(error)
+    }
+  }
+
+  sendOtp = async (req, res, next) => {
+    try {
+      const { email } = req.body
+
+      const userExists = await User.findOne({ email })
+
+      if (!userExists) {
+        const error = new Error('User not found')
+        error.status = 404
+        return next(error)
+      }
+
+      const otp = otpGenerator.generate(6, {
+        upperCaseAlphabets: false,
+        lowerCaseAlphabets: false,
+        specialChars: false,
+      })
+
+      await createAndSendOtp(email, otp)
+
+      res.status(200).json({
+        success: true,
+        message: 'OTP sent successfully',
+        otp,
+      })
+    } catch (error) {
+      // error.status = 500
+      next(error)
+    }
+  }
+
+  verifyOtp = async (req, res, next) => {
+    const { email, otp } = req.body
+
+    if (!email || !otp) {
+      const error = new Error('Email and OTP are required.')
+      error.status = 400
+      return next(error)
+    }
+
+    try {
+      await validateOtp(email, otp)
+
+      const userExists = await User.findOne({ email })
+
+      if (userExists) {
+        userExists.verified = true
+
+        await userExists.save()
+      }
+
+      return res
         .status(200)
-        .json({
-          accessToken,
-          refreshToken,
-          user,
-          message: 'User login successfully.',
-        })
-
+        .json({ success: true, message: 'OTP is valid. Log in now.' })
     } catch (error) {
       next(error)
     }
@@ -103,28 +155,6 @@ export default class AuthenticationController {
     }
 
     try {
-      // const userOtpEntry = await otpSchema.findOne({ email })
-
-      // if (!userOtpEntry || userOtpEntry.otps.length === 0) {
-      //   const error = new Error('No OTP found for this email.')
-      //   error.status = 404
-      //   return next(error)
-      // }
-
-      // const latestOtp = userOtpEntry.otps[userOtpEntry.otps.length - 1]
-
-      // if (latestOtp.otp !== otp) {
-      //   const error = new Error('Invalid OTP.')
-      //   error.status = 401
-      //   return next(error)
-      // }
-
-      // if (new Date() > new Date(latestOtp.expiryOtp)) {
-      //   const error = new Error('OTP has expired.')
-      //   error.status = 410
-      //   return next(error)
-      // }
-
       await validateOtp(email, otp)
 
       const user = await User.findOne({ email })
@@ -144,7 +174,6 @@ export default class AuthenticationController {
         success: true,
         message: 'Password updated successfully.',
       })
-
     } catch (error) {
       next(error)
     }
@@ -180,14 +209,13 @@ export default class AuthenticationController {
 
       const hashedPassword = await bcrypt.hash(newPassword, 10)
       user.password = hashedPassword
-      
+
       await user.save()
 
       return res.status(200).json({
         success: true,
         message: 'Password reset successfully.',
       })
-      
     } catch (error) {
       // error.status=400
       next(error)
@@ -207,19 +235,21 @@ export default class AuthenticationController {
       console.log(refreshToken)
       const refreshPayload = jwt.verify(
         refreshToken,
-        process.env.JWT_REFRESH_SECRET_KEY
+        config.JWT_REFRESH_SECRET_KEY
       )
 
       console.log(refreshPayload)
 
-      const newAccessToken = tokenGenerator.generateAccessToken(
+      const newAccessToken = tokenGenerator.generateToken(
         { userId: refreshPayload.userId },
-        process.env.JWT_SECRET_KEY
+        config.JWT_SECRET_KEY,
+        { expiresIn: config.ACCESS_TOKEN_TIME }
       )
 
-      const newRefreshToken = tokenGenerator.generateRefreshToken(
-        { userId: refreshPayload.userId},
-        process.env.JWT_REFRESH_SECRET_KEY
+      const newRefreshToken = tokenGenerator.generateToken(
+        { userId: refreshPayload.userId },
+        config.JWT_REFRESH_SECRET_KEY,
+        { expiresIn: config.ACCESS_TOKEN_TIME }
       )
 
       console.log(newAccessToken, newRefreshToken)
@@ -229,7 +259,6 @@ export default class AuthenticationController {
         accessToken: newAccessToken,
         refreshToken: newRefreshToken,
       })
-
     } catch (error) {
       // error.status = 401
       next(error)

@@ -1,4 +1,4 @@
-import 'dotenv/config'
+import config from './config/constants.js'
 import express from 'express'
 import tasksRouter from './routes/taskRoutes.js'
 import cors from 'cors'
@@ -10,7 +10,7 @@ import protectedRoute from './routes/authProtectedRoute.js'
 import { verifyToken } from './middleware/verifyToken.js'
 
 const app = express()
-const PORT = process.env.PORT
+const PORT = config.PORT
 
 await connectDb()
 app.use(cors())

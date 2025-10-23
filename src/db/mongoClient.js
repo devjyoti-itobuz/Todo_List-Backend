@@ -1,13 +1,11 @@
 import mongoose from 'mongoose'
-import 'dotenv/config'
-
-const MONGO_URI = process.env.MONGO_URI
+import config from '../config/constants.js';
 
 export const connectDb = async () => {
   try {
-    await mongoose.connect(MONGO_URI, {
+    await mongoose.connect(config.MONGO_URI, {
       dbName: 'tasks',
-    });
+    })
     console.log('MongoDB connected successfully')
     
   } catch (error) {
