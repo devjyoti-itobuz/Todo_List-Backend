@@ -21,7 +21,7 @@ export async function validateOtp(email, otp) {
 
   if (new Date() > new Date(latestOtp.expiryOtp)) {
     const error = new Error('OTP has expired.')
-    error.status = 410
+    error.status = 403
     throw error
   }
 
