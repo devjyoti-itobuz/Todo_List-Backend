@@ -109,7 +109,7 @@ export default class AuthenticationController {
       res.status(200).json({
         success: true,
         message: 'OTP sent successfully',
-        otp,
+        // otp,
       })
     } catch (error) {
       // error.status = 500
@@ -140,6 +140,7 @@ export default class AuthenticationController {
       return res
         .status(200)
         .json({ success: true, message: 'OTP is valid. Log in now.' })
+        
     } catch (error) {
       next(error)
     }
@@ -232,13 +233,13 @@ export default class AuthenticationController {
     }
 
     try {
-      console.log(refreshToken)
+      // console.log(refreshToken)
       const refreshPayload = jwt.verify(
         refreshToken,
         config.JWT_REFRESH_SECRET_KEY
       )
 
-      console.log(refreshPayload)
+      // console.log(refreshPayload)
 
       const newAccessToken = tokenGenerator.generateToken(
         { userId: refreshPayload.userId },
@@ -252,7 +253,7 @@ export default class AuthenticationController {
         { expiresIn: config.ACCESS_TOKEN_TIME }
       )
 
-      console.log(newAccessToken, newRefreshToken)
+      // console.log(newAccessToken, newRefreshToken)
 
       return res.status(200).json({
         message: 'New Access and Refresh Tokens generated successfully',
