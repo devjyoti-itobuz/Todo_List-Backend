@@ -27,4 +27,7 @@ authRouter.post('/forgot-password/reset', authentication.setNewPasswordAfterOtp)
 
 authRouter.post('/reset-password', verifyToken, authentication.resetPassword)
 
+authRouter.get('/details', verifyToken, authentication.getUser)
+authRouter.post('/update-details', verifyToken, authentication.updateUser)
+
 export default authRouter

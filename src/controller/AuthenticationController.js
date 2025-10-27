@@ -44,7 +44,7 @@ export default class AuthenticationController {
       const user = await User.findOne({ email })
 
       if (!user) {
-        const error = new Error('User not found!')
+        const error = new Error('User not found! Sign up.')
         error.status = 404
         return next(error)
       }
@@ -140,7 +140,6 @@ export default class AuthenticationController {
       return res
         .status(200)
         .json({ success: true, message: 'OTP is valid. Log in now.' })
-        
     } catch (error) {
       next(error)
     }
@@ -263,6 +262,39 @@ export default class AuthenticationController {
     } catch (error) {
       // error.status = 401
       next(error)
+    }
+  }
+
+  async getUser(req, res) {
+    const userId = req.user.userId
+    const details = await User.find({ _id: userId }).select(
+      'name email profileImage'
+    )
+    console.log(userId)
+
+    res.json({ success: true, details })
+  }
+
+  async updateUser(req, res, next) {
+    try {
+      const userId = req.user.userId
+      const { name, profileImage } = req.body
+
+      const updatedUser = await User.findByIdAndUpdate(
+        userId,
+        { name, profileImage },
+        { new: true }
+      ).select('name email profileImage')
+
+      if (!updatedUser) {
+        const error = new Error('User not found')
+        error.status = 404
+        return next(error)
+      }
+
+      res.json({ success: true, user: updatedUser })
+    } catch (err) {
+      next(err)
     }
   }
 }
