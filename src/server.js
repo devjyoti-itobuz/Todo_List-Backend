@@ -6,7 +6,6 @@ import { errorHandler } from './error/errorHandler.js'
 import { connectDb } from './db/mongoClient.js'
 import authRouter from './routes/authRoutes.js'
 import loggerMiddleware from './middleware/loggerMiddleware.js'
-import protectedRoute from './routes/authProtectedRoute.js'
 import { verifyToken } from './middleware/verifyToken.js'
 
 const app = express()
@@ -18,7 +17,6 @@ app.use(express.json())
 
 app.use(loggerMiddleware)
 app.use('/user/auth', authRouter)
-app.use('/user/auth/protected', protectedRoute)
 
 app.use('/api/tasks', verifyToken, tasksRouter)
 
