@@ -2,6 +2,10 @@ import OTP from '../model/otpModel.js'
 import mailSender from '../utils/mailSender.js'
 import otpSchema from '../model/otpModel.js'
 
+export function generateOtp() {
+  return Math.floor(100000 + Math.random() * 900000).toString()
+}
+
 export async function validateOtp(email, otp) {
   const userOtpEntry = await otpSchema.findOne({ email })
 

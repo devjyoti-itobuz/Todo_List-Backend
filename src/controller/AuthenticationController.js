@@ -4,7 +4,7 @@ import config from '../config/constants.js'
 import User from '../model/userModel.js'
 import { validateOtp } from '../services/otpService.js'
 import TokenGenerator from '../services/tokenGenerator.js'
-import otpGenerator from 'otp-generator'
+import { generateOtp } from '../services/otpService.js'
 import { createAndSendOtp } from '../services/otpService.js'
 
 const tokenGenerator = new TokenGenerator()
@@ -98,11 +98,7 @@ export default class AuthenticationController {
         return next(error)
       }
 
-      const otp = otpGenerator.generate(6, {
-        upperCaseAlphabets: false,
-        lowerCaseAlphabets: false,
-        specialChars: false,
-      })
+      const otp = generateOtp()
 
       await createAndSendOtp(email, otp)
 
