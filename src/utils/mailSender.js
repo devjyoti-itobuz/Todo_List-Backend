@@ -17,6 +17,7 @@ export default async function mailSender(to, subject, html) {
     subject,
     html,
   }
+  
   try {
     const info = await transporter.sendMail(mailOptions)
     console.log(`Email sent to ${to}: ${info.messageId}`)

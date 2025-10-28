@@ -10,7 +10,9 @@ import { createAndSendOtp } from '../services/otpService.js'
 const tokenGenerator = new TokenGenerator()
 
 export default class AuthenticationController {
+  
   registerUser = async (req, res, next) => {
+    
     try {
       const { email, password } = req.body
       const existingUser = await User.findOne({ email })
@@ -39,6 +41,7 @@ export default class AuthenticationController {
   }
 
   loginUser = async (req, res, next) => {
+    
     try {
       const { email, password } = req.body
       const user = await User.findOne({ email })
@@ -87,6 +90,7 @@ export default class AuthenticationController {
   }
 
   sendOtp = async (req, res, next) => {
+    
     try {
       const { email } = req.body
 

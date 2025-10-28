@@ -3,6 +3,7 @@ import mongoose from 'mongoose'
 
 export default class TaskController {
   createTask = async (req, res, next) => {
+    
     try {
       const userId = req.user.userId
       const newTask = new Task({ ...req.body, userId })
@@ -21,6 +22,7 @@ export default class TaskController {
   }
 
   getAllTasks = async (req, res, next) => {
+    
     try {
       const userId = req.user.userId
       const { search, status = 'all', priority } = req.query
@@ -65,6 +67,7 @@ export default class TaskController {
   }
 
   deleteTask = async (req, res, next) => {
+    
     try {
       const { id } = req.params
       const userId = req.user.userId
@@ -94,6 +97,7 @@ export default class TaskController {
   }
 
   clearAllTasks = async (req, res, next) => {
+    
     try {
       const userId = req.user.userId
 

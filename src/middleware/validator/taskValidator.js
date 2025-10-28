@@ -14,6 +14,7 @@ const validateRequest = (schema) => async (req, res, next) => {
     next()
 
   } catch (err) {
+    
     if (err.name === 'ValidationError') {
       err.status = 400
     }
