@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt'
 import config from '../config/constants.js'
 import User from '../model/userModel.js'
 import { validateOtp } from '../services/otpService.js'
-import TokenGenerator from '../services/tokenGenerator.js'
+import TokenGenerator from '../services/TokenGenerator.js'
 import { generateOtp } from '../services/otpService.js'
 import { createAndSendOtp } from '../services/otpService.js'
 
