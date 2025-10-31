@@ -249,7 +249,7 @@ export default class AuthenticationController {
       const newRefreshToken = tokenGenerator.generateToken(
         { userId: refreshPayload.userId },
         config.JWT_REFRESH_SECRET_KEY,
-        { expiresIn: config.ACCESS_TOKEN_TIME }
+        { expiresIn: config.REFRESH_TOKEN_TIME }
       )
 
       // console.log(newAccessToken, newRefreshToken)
