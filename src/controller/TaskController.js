@@ -11,12 +11,12 @@ export default class TaskController {
       await newTask.save()
 
       res.status(201).json({
+        success: true,
         message: 'Task created successfully',
         task: newTask,
       })
 
     } catch (err) {
-      // err.status = 500
       next(err)
     }
   }
@@ -55,13 +55,12 @@ export default class TaskController {
       const tasks = await Task.find(query).sort(sortQuery)
 
       res.json({
+        success: true,
         message: tasks.length ? 'Tasks fetched successfully' : 'No tasks found',
-        // count: tasks.length,
         tasks,
       })
 
     } catch (err) {
-      // err.status = 500
       next(err)
     }
   }
@@ -87,6 +86,7 @@ export default class TaskController {
       }
 
       res.json({
+        success: true,
         message: 'Task deleted successfully',
         taskId: id,
       })
@@ -103,10 +103,12 @@ export default class TaskController {
 
       await Task.deleteMany({ userId })
       
-      res.json({ message: 'All tasks cleared' })
+      res.json({
+        success: true,
+        message: 'All tasks cleared',
+      })
 
     } catch (err) {
-      // err.status = 500
       next(err)
     }
   }
@@ -135,12 +137,12 @@ export default class TaskController {
       }
 
       res.json({
+        success: true,
         message: 'Task updated successfully',
         task: updatedTask,
       })
       
     } catch (err) {
-      // err.status = 500
       next(err)
     }
   }
