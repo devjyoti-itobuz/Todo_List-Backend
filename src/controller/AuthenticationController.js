@@ -24,7 +24,6 @@ export default class AuthenticationController {
       }
 
       const hashedPass = await bcrypt.hash(password, 10)
-      //   console.log(username, password, hashedPass)
       const user = new User({ email, password: hashedPass })
 
       await user.save()
@@ -35,7 +34,6 @@ export default class AuthenticationController {
         message: 'User registered successfully.',
       })
     } catch (error) {
-      // error.status = error.status || 400
       next(error)
     }
   }
@@ -79,6 +77,7 @@ export default class AuthenticationController {
       )
 
       res.status(200).json({
+        success: true,
         accessToken,
         refreshToken,
         user,
@@ -109,10 +108,8 @@ export default class AuthenticationController {
       res.status(200).json({
         success: true,
         message: 'OTP sent successfully',
-        // otp,
       })
     } catch (error) {
-      // error.status = 500
       next(error)
     }
   }
@@ -217,7 +214,6 @@ export default class AuthenticationController {
         message: 'Password reset successfully.',
       })
     } catch (error) {
-      // error.status=400
       next(error)
     }
   }
@@ -232,13 +228,10 @@ export default class AuthenticationController {
     }
 
     try {
-      // console.log(refreshToken)
       const refreshPayload = jwt.verify(
         refreshToken,
         config.JWT_REFRESH_SECRET_KEY
       )
-
-      // console.log(refreshPayload)
 
       const newAccessToken = tokenGenerator.generateToken(
         { userId: refreshPayload.userId },
@@ -252,15 +245,13 @@ export default class AuthenticationController {
         { expiresIn: config.REFRESH_TOKEN_TIME }
       )
 
-      // console.log(newAccessToken, newRefreshToken)
-
       return res.status(200).json({
+        success: true,
         message: 'New Access and Refresh Tokens generated successfully',
         accessToken: newAccessToken,
         refreshToken: newRefreshToken,
       })
     } catch (error) {
-      // error.status = 401
       next(error)
     }
   }
